@@ -1,6 +1,6 @@
 import unittest
 
-from workschedule import working_history as history
+from workschedule import history
 
 
 class TestHistory(unittest.TestCase):
