@@ -4,7 +4,19 @@ from datetime import datetime
 history = [[]]
 
 
-def add_entry(entry):
+@dataclass(order=True)
+class Entry:
+    sec_sort_index: str = field(init=False, repr=False)
+    topic: str
+    hours: float = field(compare=False)
+    date: str = field(init=False)
+
+    def __post_init__(self):
+        self.date = datetime.now().strftime("%d/%m/%Y")
+        self.sec_sort_index = self.topic
+
+
+def add_entry(entry: Entry) -> None:
     """Adds entry to history.
 
     Two entries with same date and topic will be merged, so that each topic can
@@ -26,15 +38,3 @@ def get_hours(topic: str) -> float:
         if entry.topic == topic:
             hours += entry.hours
     return hours
-
-
-@dataclass(order=True)
-class Entry:
-    sec_sort_index: str = field(init=False, repr=False)
-    topic: str
-    hours: float = field(compare=False)
-    date: str = field(init=False)
-
-    def __post_init__(self):
-        self.date = datetime.now().strftime("%d/%m/%Y")
-        self.sec_sort_index = self.topic
