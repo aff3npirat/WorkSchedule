@@ -65,15 +65,24 @@ def reset(carry_on: list[str] = None) -> None:
     history.history.append([])
 
 
-def work(topic, hours) -> None:
+def work(topic: str, hours: float) -> None:
     history.add_entry(history.Entry(topic, hours))
 
 
-def start_working(topic):
+def start_working(topic: str) -> None:
     work_timer.start(topic)
 
 
-def stop_working():
+def stop_working() -> None:
     """Stops working timer and adds worked hours."""
     work_timer.stop()
     work(work_timer.topic, round(work_timer.hours(), 1))
+
+
+def take_break() -> None: pass
+
+
+def load(name: str) -> None: pass
+
+
+def save() -> None: pass
