@@ -5,6 +5,10 @@ from workschedule import working_history as history
 
 class TestHistory(unittest.TestCase):
 
+    def setUp(self) -> None:
+        history.history = []
+        history.start_new_period()
+
     def test_add_entry(self) -> None:
         # same topic, same day
         # same topic, not same day
@@ -15,15 +19,16 @@ class TestHistory(unittest.TestCase):
         c.date = "01/02/0001"
         d = history.Entry("a", 4)
 
+        period = history.history[-1]
         history.add_entry(a)
         history.add_entry(b)
-        self.assertEqual(len(history.history[-1]), 1)
+        self.assertEqual(len(period.entries), 1)
         history.add_entry(c)
-        self.assertEqual(len(history.history[-1]), 2)
+        self.assertEqual(len(period.entries), 2)
         history.add_entry(d)
-        self.assertEqual(history.history[-1][0], c)
-        self.assertEqual(history.history[-1][1], d)
-        self.assertEqual(history.history[-1][2].hours, 3)
+        self.assertEqual(period.entries[0], c)
+        self.assertEqual(period.entries[1], d)
+        self.assertEqual(period.entries[2].hours, 3)
 
     def test_get_hours(self) -> None:
         history.add_entry(history.Entry("b", 1))
