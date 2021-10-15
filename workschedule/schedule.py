@@ -2,8 +2,8 @@ import ntpath
 import pickle
 from pathlib import Path
 
+import history
 import work_timer
-import working_history as history
 
 # TODO: output
 # topic -> hours to work
@@ -62,7 +62,7 @@ def reset(carry_on: list[str] = None) -> None:
             remaining[topic] += schedule[topic] - history.get_hours(topic)
         else:
             remaining[topic] = 0
-    history.history.append([])
+    history.start_new_period()
 
 
 def work(topic: str, hours: float) -> None:
