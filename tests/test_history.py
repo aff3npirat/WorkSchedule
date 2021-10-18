@@ -1,13 +1,13 @@
 import unittest
 
-from workschedule import history
+import history
 
 
 class TestHistory(unittest.TestCase):
 
     def setUp(self) -> None:
         history.history = []
-        history.start_new_period()
+        history.history.append(history.Period())
 
     def test_add_entry(self) -> None:
         # same topic, same day

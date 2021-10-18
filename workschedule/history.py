@@ -49,7 +49,3 @@ def add_entry(entry: Entry) -> None:
 
 def get_hours(topic: str) -> float:
     return history[-1].get_hours(topic)
-
-
-def start_new_period() -> None:
-    history.append(Period())
