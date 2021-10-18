@@ -2,11 +2,16 @@ import ntpath
 import pickle
 from pathlib import Path
 
+import helpers
 import history
 import work_timer
 
 # TODO: output
+# TODO: sub-goals
+#       add a goal to a topic. A goal can be marked as done. Is marked as done
+#         eitehr when resetting (if enabled) or by user.
 # topic -> hours to work
+
 schedule: dict = {}
 # topic -> hours remaining
 remaining: dict = {}
@@ -16,7 +21,8 @@ work_timer = work_timer.WorkTimer()
 def from_file(fpath: str) -> None:
     """Initializes schedule and history files.
 
-    Creates a .schedule and a .history file, with same name as given file.
+    Creates a schedule and a history file. Files are saved under
+    ./schedules from project root.
 
     Parameters
     ----------
@@ -35,15 +41,16 @@ def from_file(fpath: str) -> None:
             topic, hours = line.split(": ")
             hours = hours.rstrip("\n")
             schedule[topic] = float(hours)
-            remaining[topic] = 0
+            remaining[topic] = 0.0
 
     name = ntpath.basename(fpath)
     if "." in name:
         name = name.split(".")[0]
-    with open(fpath.parent / f"{name}.schedule", "w+b") as file:
+    root_dir = helpers.get_top_directory() / "schedules"
+    with open(root_dir / f"{name}.schedule", "w+b") as file:
         pickle.dump([schedule, remaining], file)
-    with open(fpath.parent / f"{name}.history", "w+b") as file:
-        pickle.dump([[]], file)
+    with open(root_dir / f"{name}.history", "w+b") as file:
+        pickle.dump([history.Period()], file)
 
 
 def reset(carry_on: list[str] = None) -> None:
@@ -51,8 +58,7 @@ def reset(carry_on: list[str] = None) -> None:
     Parameters
     ----------
     carry_on
-        Add remaining hours to work for each topic given as string. Elements
-        which do not correspond to a topic have no effect.
+        Keep remaining hours for each given topic.
     """
     if carry_on is None:
         carry_on = []
@@ -62,7 +68,7 @@ def reset(carry_on: list[str] = None) -> None:
             remaining[topic] += schedule[topic] - history.get_hours(topic)
         else:
             remaining[topic] = 0
-    history.start_new_period()
+    history.history.append(history.Period())
 
 
 def work(topic: str, hours: float) -> None:
@@ -82,7 +88,18 @@ def stop_working() -> None:
 def take_break() -> None: pass
 
 
-def load(name: str) -> None: pass
+def load(name: str) -> None:
+    """Loads schedule and history."""
+    root_dir = helpers.get_top_directory() / "schedules"
+    with open(root_dir / f"{name}.schedule", "rb") as file:
+        schedule_, remaining_ = pickle.load(file)
+    with open(root_dir / f"{name}.history", "rb") as file:
+        history_ = pickle.load(file)
+
+    history.history = history_
+    global schedule, remaining
+    schedule = schedule_
+    remaining = remaining_
 
 
 def save() -> None: pass
