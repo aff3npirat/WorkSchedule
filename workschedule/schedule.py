@@ -6,10 +6,9 @@ import helpers
 import history
 import work_timer
 
-# TODO: output
 # TODO: sub-goals
 #       add a goal to a topic. A goal can be marked as done. Is marked as done
-#         eitehr when resetting (if enabled) or by user.
+#       eitehr when resetting (if enabled) or by user.
 
 # topic -> hours to work
 schedule: dict = {}
@@ -114,3 +113,24 @@ def save(name: str) -> None:
         pickle.dump([schedule, remaining], file)
     with open(root_dir / f"{name}.history", "wb") as file:
         pickle.dump(history.history, file)
+
+
+def as_string() -> str:
+    """Get current period in printable format.
+
+    Returns
+    -------
+        Returns a string containing number of hours worked and numbers of hours
+        to work for each topic.
+    Examples
+    --------
+        +---------+------+------+---------+
+        | Topic   | A    | B    | C       |
+        +=========+======+======+=========+
+        | Worked  | 2    | 1    | 0       |
+        +---------+------+------+---------+
+        | toWork  | 5 +7 | 6 +0 | 10.5 +0 |
+        +---------+------+------+---------+
+    """
+    # TODO
+    pass
