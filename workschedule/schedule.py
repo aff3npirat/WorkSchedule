@@ -10,8 +10,8 @@ import work_timer
 # TODO: sub-goals
 #       add a goal to a topic. A goal can be marked as done. Is marked as done
 #         eitehr when resetting (if enabled) or by user.
-# topic -> hours to work
 
+# topic -> hours to work
 schedule: dict = {}
 # topic -> hours remaining
 remaining: dict = {}
@@ -33,22 +33,22 @@ def from_file(fpath: str) -> None:
     if not fpath.is_file():
         raise FileNotFoundError(f"could not find file {fpath.absolute()}")
 
-    schedule = {}
-    remaining = {}
+    schedule_ = {}
+    remaining_ = {}
     with open(fpath, "r") as file:
         lines = file.readlines()
         for line in lines:
             topic, hours = line.split(": ")
             hours = hours.rstrip("\n")
-            schedule[topic] = float(hours)
-            remaining[topic] = 0.0
+            schedule_[topic] = float(hours)
+            remaining_[topic] = 0.0
 
     name = ntpath.basename(fpath)
     if "." in name:
         name = name.split(".")[0]
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "w+b") as file:
-        pickle.dump([schedule, remaining], file)
+        pickle.dump([schedule_, remaining_], file)
     with open(root_dir / f"{name}.history", "w+b") as file:
         pickle.dump([history.Period()], file)
 
@@ -102,4 +102,18 @@ def load(name: str) -> None:
     remaining = remaining_
 
 
-def save() -> None: pass
+def save(name: str) -> None:
+    """Saves current schedule.
+
+    Expects a .scheule and .history file already exists.
+
+    Parameters
+    ----------
+    name
+        Name used to load schedule.
+    """
+    root_dir = helpers.get_top_directory() / "schedules"
+    with open(root_dir / f"{name}.schedule", "wb") as file:
+        pickle.dump([schedule, remaining], file)
+    with open(root_dir / f"{name}.history", "wb") as file:
+        pickle.dump(history.history, file)
