@@ -33,6 +33,11 @@ class WorkTimer:
         pass
 
     @staticmethod
+    def resume(self):
+        # TODO
+        pass
+
+    @staticmethod
     def hours():
         diff = WorkTimer.toc - WorkTimer.tic
         seconds_in_hour = 60 * 60
