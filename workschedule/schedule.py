@@ -85,9 +85,6 @@ def stop_working() -> None:
     work(work_timer.topic, round(work_timer.hours(), 1))
 
 
-def take_break() -> None: pass
-
-
 def load(name: str) -> None:
     """Loads schedule and history."""
     root_dir = helpers.get_top_directory() / "schedules"
