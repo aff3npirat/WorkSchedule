@@ -39,3 +39,7 @@ class TestHistory(unittest.TestCase):
         self.assertEqual(history.get_hours("a"), 7)
         self.assertEqual(history.get_hours("b"), 1)
         self.assertEqual(history.get_hours("c"), 2)
+
+
+if __name__ == '__main__':
+    unittest.main()
