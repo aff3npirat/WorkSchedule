@@ -93,7 +93,7 @@ def stop_working() -> None:
     work(work_timer.topic, round(work_timer.hours(), 1))
 
 
-def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
+def add_goal(topic: str, name: str, description: str) -> None:
     """Adds a goal to current period.
 
     Parameters
@@ -102,10 +102,9 @@ def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
     name
         Used to adress goal, e.g. mark as done.
     description
-    periodic
         The goal will be readded every period.
     """
-    new_goal = goal.Goal(name, description, periodic)
+    new_goal = goal.Goal(name, description)
     goals[topic].append(new_goal)
 
 
