@@ -1,5 +1,6 @@
 import ntpath
 import pickle
+import texttable
 from pathlib import Path
 
 import helpers
@@ -115,22 +116,28 @@ def save(name: str) -> None:
         pickle.dump(history.history, file)
 
 
-def as_string() -> str:
+def as_string(detailed: bool) -> str:
     """Get current period in printable format.
 
-    Returns
-    -------
-        Returns a string containing number of hours worked and numbers of hours
-        to work for each topic.
-    Examples
-    --------
-        +---------+------+------+---------+
-        | Topic   | A    | B    | C       |
-        +=========+======+======+=========+
-        | Worked  | 2    | 1    | 0       |
-        +---------+------+------+---------+
-        | toWork  | 5 +7 | 6 +0 | 10.5 +0 |
-        +---------+------+------+---------+
+    Parameters
+    ----------
+    detailed
+        Seperate remaining hours from hours to work.
     """
-    # TODO
-    pass
+    rows = [["Topic"], ["toWork"], ["Worked"]]
+    for topic in schedule:
+        rows[0].append(topic)
+        if detailed:
+            rows[1].append(f"{schedule[topic]}|{remaining[topic]}")
+        else:
+            rows[1].append(schedule[topic])
+        rows[2].append(history.get_hours(topic))
+
+    table = texttable.Texttable()
+    table.set_cols_align("c" for _ in range(len(schedule)))
+    table.set_cols_dtype(["t" for _ in range(len(schedule))])
+    table.set_chars(['-', '\\', '+', '-'])
+    # Texttable.BORDER | Texttable.HEADER | Texttable.VLINES
+    table.set_deco(11)
+    table.add_rows(rows)
+    return table.draw()
