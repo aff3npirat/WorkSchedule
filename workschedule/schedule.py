@@ -58,13 +58,15 @@ def from_file(fpath: str) -> None:
 
 
 def reset(carry_on: list[str] = None) -> None:
-    """
+    """Starts a new period.
+
+    Resets worked hours, remaining and removes all done goals.
+
     Parameters
     ----------
     carry_on
-        Keep remaining hours for each given topic.
+        Keep remaining hours from each given topic.
     """
-    # TODO: handle goals
     if carry_on is None:
         carry_on = []
 
@@ -73,6 +75,7 @@ def reset(carry_on: list[str] = None) -> None:
             remaining[topic] += schedule[topic] - history.get_hours(topic)
         else:
             remaining[topic] = 0.0
+        goals[topic] = goal.get_not_dones(goals[topic])
     history.history.append(history.Period())
 
 
