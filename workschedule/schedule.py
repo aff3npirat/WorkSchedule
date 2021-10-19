@@ -182,3 +182,14 @@ def overview(detailed: bool) -> str:
     table.set_deco(15)
     table.add_rows(rows, header=False)
     return table.draw()
+
+
+# TODO
+def topic_overview(detailed: bool) -> str:
+    """Get an overview of one topic.
+
+    Parameters
+    ----------
+    detailed
+        Show goal descriptions
+    """
