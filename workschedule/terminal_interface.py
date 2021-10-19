@@ -65,3 +65,4 @@ parser_new.add_argument("-l",
 parser_new.set_defaults(func=new)
 
 args = parser.parse_args()
+args.func(args)
