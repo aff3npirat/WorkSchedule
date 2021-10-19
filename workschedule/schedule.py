@@ -85,6 +85,29 @@ def stop_working() -> None:
     work(work_timer.topic, round(work_timer.hours(), 1))
 
 
+def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
+    """Adds a goal to current period.
+
+    A goal is assigned to a topic. A goal can be marked as done which will
+    remove the goal.
+
+    Parameters
+    ----------
+    topic
+    name
+        Used to adress goal, e.g. mark as done.
+    description
+    periodic
+        The goal will be readded every period.
+    """
+    pass
+
+
+def remove_goal(topic: str, name: str) -> None:
+    """Remove goal from current period."""
+    pass
+
+
 def load(name: str) -> None:
     """Loads schedule and history."""
     root_dir = helpers.get_top_directory() / "schedules"
