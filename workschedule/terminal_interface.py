@@ -1,5 +1,21 @@
 import argparse
 
+
+def overview(args) -> None: pass
+
+
+def work(args) -> None: pass
+
+
+def done(args) -> None: pass
+
+
+def load(args) -> None: pass
+
+
+def new(args) -> None: pass
+
+
 parser = argparse.ArgumentParser(description="main parser")
 subparsers = parser.add_subparsers(description="subparsers")
 
@@ -10,6 +26,7 @@ parser_overview.add_argument("-d",
                              default=False,
                              action="store_true",
                              help="d help")
+parser_overview.set_defaults(func=overview)
 
 parser_work = subparsers.add_parser("work", help="work help")
 parser_work.add_argument("topic", type=str, help="topic help")
@@ -19,6 +36,7 @@ parser_work.add_argument("-s",
                          default=False,
                          action="store_true",
                          help="-s help")
+parser_work.set_defaults(func=overview)
 
 parser_done = subparsers.add_parser("done", help="done help")
 parser_done.add_argument("goal", type=str, help="goal help")
@@ -27,6 +45,7 @@ parser_done.add_argument("-p",
                          defaul=False,
                          action="store_true",
                          help="-p help")
+parser_done.set_defaults(func=done)
 
 parser_load = subparsers.add_parser("load", help="load help")
 parser_load.add_argument("name", type=str, help="name help")
@@ -35,6 +54,7 @@ parser_load.add_argument("-s",
                          default=False,
                          action="store_true",
                          help="-s help")
+parser_load.set_defaults(func=load)
 
 parser_new = subparsers.add_parser("new", help="new help")
 parser_new.add_argument("-l",
@@ -42,5 +62,6 @@ parser_new.add_argument("-l",
                         default=False,
                         action="store_true",
                         help="-l help")
+parser_new.set_defaults(func=new)
 
 args = parser.parse_args()
