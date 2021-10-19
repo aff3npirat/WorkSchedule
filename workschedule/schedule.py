@@ -3,6 +3,7 @@ import pickle
 import texttable
 from pathlib import Path
 
+import goal
 import helpers
 import history
 import work_timer
@@ -15,6 +16,8 @@ import work_timer
 schedule: dict = {}
 # topic -> hours remaining
 remaining: dict = {}
+# topic -> Goal
+goals = {}
 work_timer = work_timer.WorkTimer()
 
 
@@ -35,6 +38,7 @@ def from_file(fpath: str) -> None:
 
     schedule_ = {}
     remaining_ = {}
+    # TODO: add goals save, init
     with open(fpath, "r") as file:
         lines = file.readlines()
         for line in lines:
@@ -60,6 +64,7 @@ def reset(carry_on: list[str] = None) -> None:
     carry_on
         Keep remaining hours for each given topic.
     """
+    # TODO: handle goals
     if carry_on is None:
         carry_on = []
 
@@ -67,7 +72,7 @@ def reset(carry_on: list[str] = None) -> None:
         if topic in carry_on:
             remaining[topic] += schedule[topic] - history.get_hours(topic)
         else:
-            remaining[topic] = 0
+            remaining[topic] = 0.0
     history.history.append(history.Period())
 
 
@@ -88,9 +93,6 @@ def stop_working() -> None:
 def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
     """Adds a goal to current period.
 
-    A goal is assigned to a topic. A goal can be marked as done which will
-    remove the goal.
-
     Parameters
     ----------
     topic
@@ -100,12 +102,14 @@ def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
     periodic
         The goal will be readded every period.
     """
-    pass
+    new_goal = goal.Goal(name, description, periodic)
+    goals[topic].append(new_goal)
 
 
-def remove_goal(topic: str, name: str) -> None:
-    """Remove goal from current period."""
-    pass
+def mark_done(topic: str, goal_name: str) -> None:
+    """Mark a goal as done."""
+    # TODO: ValueError handle, if goal_name is not found in list
+    goals[topic][goals[topic].index(goal_name)].done = True
 
 
 def load(name: str) -> None:
