@@ -26,15 +26,15 @@ class TestSchedule(unittest.TestCase):
         self.assertEqual(actual, expected)
         self.assertEqual(len(history.history), 2)
 
-    def test_as_string(self):
+    def test_overview(self):
         schedule.work("Lernen", 6.5)
         schedule.work("Arbeiten", 14)
         schedule.reset(["Lernen", "Arbeiten"])
         schedule.work("Lernen", 4)
         print("---Without detail---")
-        print(schedule.as_string(False), end="\n\n")
+        print(schedule.overview(False), end="\n\n")
         print("--With detail---")
-        print(schedule.as_string(True), end="\n\n")
+        print(schedule.overview(True), end="\n\n")
 
     def test_goals(self):
         # test add_goal
