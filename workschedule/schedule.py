@@ -22,10 +22,9 @@ work_timer = work_timer.WorkTimer()
 
 
 def from_file(fpath: str) -> None:
-    """Initializes schedule and history files.
+    """Builds a new schedule.
 
-    Creates a schedule and a history file. Files are saved under
-    ./schedules from project root.
+    Schedule must be loaded before used.
 
     Parameters
     ----------
@@ -38,7 +37,7 @@ def from_file(fpath: str) -> None:
 
     schedule_ = {}
     remaining_ = {}
-    # TODO: add goals save, init
+    goals_ = {}
     with open(fpath, "r") as file:
         lines = file.readlines()
         for line in lines:
@@ -46,13 +45,14 @@ def from_file(fpath: str) -> None:
             hours = hours.rstrip("\n")
             schedule_[topic] = float(hours)
             remaining_[topic] = 0.0
+            goals_[topic] = []
 
     name = ntpath.basename(fpath)
     if "." in name:
         name = name.split(".")[0]
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "w+b") as file:
-        pickle.dump([schedule_, remaining_], file)
+        pickle.dump([schedule_, remaining_, goals_], file)
     with open(root_dir / f"{name}.history", "w+b") as file:
         pickle.dump([history.Period()], file)
 
