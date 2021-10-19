@@ -124,18 +124,19 @@ def as_string(detailed: bool) -> str:
     detailed
         Seperate remaining hours from hours to work.
     """
-    rows = [["Topic"], ["toWork"], ["Worked"]]
+    rows = [["Topic"], ["Worked"], ["toWork"]]
     for topic in schedule:
         rows[0].append(topic)
+        rows[1].append(f"{history.get_hours(topic):g}")
         if detailed:
-            rows[1].append(f"{schedule[topic]}|{remaining[topic]}")
+            rows[2].append(f"{schedule[topic]:g}|{remaining[topic]:g}")
         else:
-            rows[1].append(schedule[topic])
-        rows[2].append(history.get_hours(topic))
+            rows[2].append(f"{schedule[topic] + remaining[topic]:g}")
 
     table = texttable.Texttable()
-    table.set_cols_align("c" for _ in range(len(schedule)))
-    table.set_cols_dtype(["t" for _ in range(len(schedule))])
+    table.set_header_align(["l" for _ in range(len(schedule) + 1)])
+    table.set_cols_align(["l"] + ["c" for _ in range(len(schedule))])
+    table.set_cols_dtype(["t" for _ in range(len(schedule) + 1)])
     table.set_chars(['-', '\\', '+', '-'])
     # Texttable.BORDER | Texttable.HEADER | Texttable.VLINES
     table.set_deco(11)
