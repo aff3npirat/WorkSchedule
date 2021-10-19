@@ -116,14 +116,15 @@ def load(name: str) -> None:
     """Loads schedule and history."""
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "rb") as file:
-        schedule_, remaining_ = pickle.load(file)
+        schedule_, remaining_, goals_ = pickle.load(file)
     with open(root_dir / f"{name}.history", "rb") as file:
         history_ = pickle.load(file)
 
     history.history = history_
-    global schedule, remaining
+    global schedule, remaining, goals
     schedule = schedule_
     remaining = remaining_
+    goals = goals_
 
 
 def save(name: str) -> None:
@@ -138,7 +139,7 @@ def save(name: str) -> None:
     """
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "wb") as file:
-        pickle.dump([schedule, remaining], file)
+        pickle.dump([schedule, remaining, goals], file)
     with open(root_dir / f"{name}.history", "wb") as file:
         pickle.dump(history.history, file)
 
