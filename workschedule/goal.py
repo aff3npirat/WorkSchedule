@@ -8,8 +8,11 @@ class Goal:
     description: str
     done: bool = False
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.name == other
+
+    def __repr__(self) -> str:
+        return self.name
 
 
 def get_not_dones(goals: list[Goal]) -> list[Goal]:

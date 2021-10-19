@@ -143,7 +143,6 @@ def save(name: str) -> None:
         pickle.dump(history.history, file)
 
 
-# TODO: output goals
 def overview(detailed: bool) -> str:
     """Get current period in printable format.
 
@@ -151,22 +150,35 @@ def overview(detailed: bool) -> str:
     ----------
     detailed
         Seperate remaining hours from hours to work.
+
+    Returns
+    -------
+    Returns table with following rows:
+        'Topic'
+        'Worked'
+        'toWork'
+        'Notes'
     """
-    rows = [["Topic"], ["Worked"], ["toWork"]]
+    rows = [["Topic"], ["Worked"], ["toWork"], ["Notes"]]
     for topic in schedule:
         rows[0].append(topic)
         rows[1].append(f"{history.get_hours(topic):g}")
         if detailed:
-            rows[2].append(f"{schedule[topic]:g}|{remaining[topic]:g}")
+            rows[2].append(f"{schedule[topic]:g}({remaining[topic]:g})")
         else:
             rows[2].append(f"{schedule[topic] + remaining[topic]:g}")
+        notes_cell = ""
+        for goal_ in goals[topic]:
+            notes_cell += f"{goal_}\n"
+        notes_cell = notes_cell.rstrip("\n")
+        rows[3].append(notes_cell)
 
     table = texttable.Texttable()
     table.set_header_align(["l" for _ in range(len(schedule) + 1)])
     table.set_cols_align(["l"] + ["c" for _ in range(len(schedule))])
     table.set_cols_dtype(["t" for _ in range(len(schedule) + 1)])
-    table.set_chars(['-', '\\', '+', '-'])
+    table.set_chars(['-', '|', '+', '='])
     # Texttable.BORDER | Texttable.HEADER | Texttable.VLINES
-    table.set_deco(11)
-    table.add_rows(rows)
+    table.set_deco(15)
+    table.add_rows(rows, header=False)
     return table.draw()
