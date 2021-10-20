@@ -2,6 +2,7 @@ import argparse
 
 import schedule
 from schedule import NoSuchTopic, NoSuchGoal
+from work_timer import NoTimerRunning, TimerAlreadyRunning
 
 
 def overview(args) -> None:
@@ -28,8 +29,31 @@ def remove_topic(args) -> None:
             print(f"Could not find {args.topic} in current schedule.")
 
 
-# TODO: error handling when starting, stopping timer
-def work(args) -> None: pass
+def work(args) -> None:
+    if args.topic == "":
+        print("'' is not a valid topic name.")
+    else:
+        try:
+            schedule.work(args.topic, args.hours)
+        except NoSuchTopic:
+            print(f"Could not find topic {args.topic}.")
+
+
+def workt(args) -> None:
+    if args.stop:
+        try:
+            schedule.stop_working()
+        except NoTimerRunning:
+            print("There is no timer running.")
+    elif args.topic != "":
+        try:
+            schedule.start_working(args.topic)
+        except TimerAlreadyRunning:
+            print("There is already a timer running.")
+        except NoSuchTopic:
+            print(f"Could not find topic {args.topic}.")
+    else:
+        print("'' is not a valid topic name.")
 
 
 def done(args) -> None: pass
@@ -48,7 +72,8 @@ parser = argparse.ArgumentParser(description="main parser")
 subparsers = parser.add_subparsers(description="subparsers")
 
 parser_overview = subparsers.add_parser("overview", help="overview help")
-parser_overview.add_argument("topic",
+parser_overview.add_argument("-t",
+                             "--topic",
                              default="",
                              type=str,
                              help="t help")
@@ -59,7 +84,7 @@ parser_overview.add_argument("-d",
                              help="d help")
 parser_overview.set_defaults(func=overview)
 
-parser_add_topic = subparsers.add_parser("add_topic", help="add_topic help")
+parser_add_topic = subparsers.add_parser("add", help="add_topic help")
 parser_add_topic.add_argument("topic", default="", type=str, help="topic help")
 parser_add_topic.add_argument("hours",
                               default=None,
@@ -67,8 +92,7 @@ parser_add_topic.add_argument("hours",
                               help="hours help")
 parser_add_topic.set_defaults(func=add_topic)
 
-parser_remove_topic = subparsers.add_parser("remove_topic",
-                                            help="remove_topic help")
+parser_remove_topic = subparsers.add_parser("remove", help="remove_topic help")
 parser_remove_topic.add_argument("topic",
                                  default="",
                                  type=str,
@@ -76,14 +100,18 @@ parser_remove_topic.add_argument("topic",
 parser_remove_topic.set_defaults(func=remove_topic)
 
 parser_work = subparsers.add_parser("work", help="work help")
-parser_work.add_argument("topic", type=str, default="", help="topic help")
-parser_work.add_argument("hours", type=float, default=None, help="hours help")
-parser_work.add_argument("-s",
-                         "--stop",
-                         default=False,
-                         action="store_true",
-                         help="-s help")
-parser_work.set_defaults(func=overview)
+parser_work.add_argument("topic", type=str, help="topic help")
+parser_work.add_argument("hours", type=float, help="hours help")
+parser_work.set_defaults(func=work)
+
+parser_workt = subparsers.add_parser("workt", help="workt help")
+parser_workt.add_argument("-t", "--topic", default="", type=str, help="-t help")
+parser_workt.add_argument("-s",
+                          "--stop",
+                          default=False,
+                          type=bool,
+                          action="store_true",
+                          help="-s help")
 
 parser_done = subparsers.add_parser("done", help="done help")
 parser_done.add_argument("goal", type=str, help="goal help")
@@ -112,4 +140,4 @@ parser_new.add_argument("-l",
 parser_new.set_defaults(func=new)
 
 args = parser.parse_args()
-args.func(args)
+# args.func(args)
