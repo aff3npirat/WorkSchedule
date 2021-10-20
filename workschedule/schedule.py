@@ -200,6 +200,15 @@ def overview(detailed: bool) -> str:
         'Notes'
     """
     rows = [["Topic"], ["Worked"], ["toWork"], ["Notes"]]
+    rows[0].append("Period")
+    rows[1].append(f"{history.get_hours():g}")
+    hours_towork = sum(schedule.values())
+    hours_remaining = sum(remaining.values())
+    if detailed:
+        rows[2].append(f"{hours_towork:g}({hours_remaining:g})")
+    else:
+        rows[2].append(f"{hours_towork + hours_remaining:g}")
+    rows[3].append("")
     for topic in schedule:
         rows[0].append(topic)
         rows[1].append(f"{history.get_hours(topic):g}")
@@ -214,9 +223,9 @@ def overview(detailed: bool) -> str:
         rows[3].append(notes_cell)
 
     table = texttable.Texttable()
-    table.set_header_align(["l" for _ in range(len(schedule) + 1)])
-    table.set_cols_align(["l"] + ["c" for _ in range(len(schedule))])
-    table.set_cols_dtype(["t" for _ in range(len(schedule) + 1)])
+    table.set_header_align(["l" for _ in range(len(schedule) + 2)])
+    table.set_cols_align(["l"] + ["c" for _ in range(len(schedule) + 1)])
+    table.set_cols_dtype(["t" for _ in range(len(schedule) + 2)])
     table.set_chars(['-', '|', '+', '='])
     # Texttable.BORDER | Texttable.HEADER | Texttable.VLINES
     table.set_deco(15)
