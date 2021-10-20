@@ -205,7 +205,8 @@ def overview(detailed: bool) -> str:
     hours_towork = sum(schedule.values())
     hours_remaining = sum(remaining.values())
     if detailed:
-        rows[2].append(f"{hours_towork:g}({hours_remaining:g})")
+        sign = "+" if hours_remaining >= 0 else ""
+        rows[2].append(f"{hours_towork:g}({sign}{hours_remaining:g})")
     else:
         rows[2].append(f"{hours_towork + hours_remaining:g}")
     rows[3].append("")
@@ -213,7 +214,8 @@ def overview(detailed: bool) -> str:
         rows[0].append(topic)
         rows[1].append(f"{history.get_hours(topic):g}")
         if detailed:
-            rows[2].append(f"{schedule[topic]:g}({remaining[topic]:g})")
+            sign = "+" if remaining[topic] >= 0 else ""
+            rows[2].append(f"{schedule[topic]:g}({sign}{remaining[topic]:g})")
         else:
             rows[2].append(f"{schedule[topic] + remaining[topic]:g}")
         notes_cell = ""
