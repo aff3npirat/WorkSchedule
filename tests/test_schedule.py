@@ -119,6 +119,13 @@ class TestSchedule(unittest.TestCase):
     def test_stop_working(self):
         self.assertRaises(work_timer.NoTimerRunning, schedule.stop_working)
 
+    def test_load(self):
+        self.assertRaises(FileNotFoundError, schedule.load, "nixda")
+        self.assertRaises(FileNotFoundError, schedule.load, "test_load")
+        expected = {"Lernen": 5.0, "Arbeiten": 20.0, "LustigeSachen": 15.5}
+        self.assertEqual(schedule.schedule, expected)
+        self.assertIsNone(schedule.load("test_schedule"))
+
 
 if __name__ == '__main__':
     unittest.main()

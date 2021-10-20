@@ -171,17 +171,15 @@ def load(name: str) -> None:
 def save(name: str) -> None:
     """Saves current schedule.
 
-    Expects a .scheule and .history file already exists.
-
     Parameters
     ----------
     name
         Name used to load schedule.
     """
     root_dir = helpers.get_top_directory() / "schedules"
-    with open(root_dir / f"{name}.schedule", "wb") as file:
+    with open(root_dir / f"{name}.schedule", "w+b") as file:
         pickle.dump([schedule, remaining, goals], file)
-    with open(root_dir / f"{name}.history", "wb") as file:
+    with open(root_dir / f"{name}.history", "w+b") as file:
         pickle.dump(history.history, file)
 
 
