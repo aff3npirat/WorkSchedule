@@ -242,6 +242,23 @@ def topic_overview(topic: str, detailed: bool) -> str:
     Parameters
     ----------
     topic
+        Name of topic.
     detailed
-        Show goal descriptions and seperate remaining from worked hours.
+        Expand goal descriptions.
+
+    Examples
+    --------
+    >>> topic_overview("CogScie", True)
+    CogScie: 10/20(+3)
+    ------------------
+    Goal#1
+        This was my first goal.
+   Goal#2
+        This is my second goal. I would rather never fulfill it.
+
+    >>> topic_overview("CogScie", False)
+    CogScie: 10/20(+3)
+    ------------------
+    Goal#1 - This was my first goal.
+    Goal#2 - This is my second goal. I would rather...
     """
