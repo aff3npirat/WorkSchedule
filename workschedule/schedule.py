@@ -17,6 +17,14 @@ goals = {}
 work_timer = work_timer.WorkTimer()
 
 
+class NoSuchTopic(Exception):
+    pass
+
+
+class NoSuchGoal(Exception):
+    pass
+
+
 def add_topic(new_topic: str, hours: float) -> None:
     """Adds a new topic to current schedule"""
     schedule[new_topic] = hours
@@ -31,7 +39,7 @@ def remove_topic(topic: str) -> None:
         del remaining[topic]
         del goals[topic]
     else:
-        raise KeyError
+        raise NoSuchTopic
 
 
 def from_file(fpath: str) -> None:
@@ -93,10 +101,14 @@ def reset(carry_on: list[str] = None) -> None:
 
 
 def work(topic: str, hours: float) -> None:
+    if topic not in schedule:
+        raise NoSuchTopic
     history.add_entry(history.Entry(topic, hours))
 
 
 def start_working(topic: str) -> None:
+    if topic not in schedule:
+        raise NoSuchTopic
     work_timer.start(topic)
 
 
@@ -117,14 +129,21 @@ def add_goal(topic: str, name: str, description: str) -> None:
     description
         The goal will be readded every period.
     """
+    if topic not in schedule:
+        raise NoSuchTopic
     new_goal = goal.Goal(name, description)
     goals[topic].append(new_goal)
 
 
 def mark_done(topic: str, goal_name: str) -> None:
     """Mark a goal as done."""
-    # TODO: ValueError handle, if goal_name is not found in list
-    goals[topic][goals[topic].index(goal_name)].done = True
+    if topic not in schedule:
+        raise NoSuchTopic
+    try:
+        idx = goals[topic].index(goal_name)
+    except ValueError:
+        raise NoSuchGoal
+    goals[topic][idx].done = True
 
 
 def load(name: str) -> None:

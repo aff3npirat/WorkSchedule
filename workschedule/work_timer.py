@@ -1,6 +1,14 @@
 from datetime import datetime
 
 
+class TimerAlreadyRunning(Exception):
+    pass
+
+
+class NoTimerRunning(Exception):
+    pass
+
+
 class WorkTimer:
     """Measures working time on a topic.
 
@@ -15,15 +23,14 @@ class WorkTimer:
     @staticmethod
     def start(topic):
         if WorkTimer.topic is not None:
-            raise ValueError(f"there is already a timer running on topic"
-                             f"{WorkTimer.topic}")
+            raise TimerAlreadyRunning(WorkTimer.topic)
         WorkTimer.topic = topic
         WorkTimer.tic = datetime.now()
 
     @staticmethod
     def stop():
         if WorkTimer.topic is None:
-            raise ValueError("there is no active timer")
+            raise NoTimerRunning
         WorkTimer.toc = datetime.now()
         WorkTimer.topic = None
 
