@@ -31,11 +31,11 @@ class Period:
             self.entries.append(entry)
         self.entries.sort()
 
-    def get_hours(self, topic: str) -> float:
+    def get_hours(self, topic: str = None) -> float:
         """Returns number of hours worked on topic."""
         hours = 0
         for entry in self.entries:
-            if entry.topic == topic:
+            if topic is None or entry.topic == topic:
                 hours += entry.hours
         return hours
 
@@ -47,5 +47,5 @@ def add_entry(entry: Entry) -> None:
     history[-1].add_entry(entry)
 
 
-def get_hours(topic: str) -> float:
+def get_hours(topic: str = None) -> float:
     return history[-1].get_hours(topic)
