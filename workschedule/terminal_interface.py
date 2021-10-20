@@ -56,7 +56,14 @@ def workt(args) -> None:
         print("'' is not a valid topic name.")
 
 
-def done(args) -> None: pass
+def goal_cmd(args) -> None:
+    """Selects function to call based on args.cmd."""
+
+
+def add_goal(topic: str, name: str, description: str) -> None: pass
+
+
+def done(topic: str, periodic: bool) -> None: pass
 
 
 def load(args) -> None: pass
@@ -105,15 +112,17 @@ parser_workt.add_argument("-s",
                           default=False,
                           action="store_true",
                           help="-s help")
+parser_workt.set_defaults(func=workt)
 
-parser_done = subparsers.add_parser("done", help="done help")
-parser_done.add_argument("goal", type=str, help="goal help")
-parser_done.add_argument("-p",
+parser_goal = subparsers.add_parser("goal", help="goal help")
+parser_goal.add_argument("cmd", type=str, help="cmd help")
+parser_goal.add_argument("topic", type=str, help="topic help")
+parser_goal.add_argument("-p",
                          "--periodic",
                          default=False,
                          action="store_true",
                          help="-p help")
-parser_done.set_defaults(func=done)
+parser_goal.set_defaults(func=goal_cmd)
 
 parser_load = subparsers.add_parser("load", help="load help")
 parser_load.add_argument("name", type=str, help="name help")
