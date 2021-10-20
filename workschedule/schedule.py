@@ -14,7 +14,7 @@ schedule: dict = {}
 remaining: dict = {}
 # topic -> Goal
 goals = {}
-work_timer = work_timer.WorkTimer()
+work_timer_ = work_timer.WorkTimer()
 
 
 class NoSuchTopic(Exception):
@@ -109,13 +109,14 @@ def work(topic: str, hours: float) -> None:
 def start_working(topic: str) -> None:
     if topic not in schedule:
         raise NoSuchTopic
-    work_timer.start(topic)
+    work_timer_.start(topic)
 
 
 def stop_working() -> None:
     """Stops working timer and adds worked hours."""
-    work_timer.stop()
-    work(work_timer.topic, round(work_timer.hours(), 1))
+    topic = work_timer_.topic
+    work_timer_.stop()
+    work(topic, round(work_timer_.hours(), 1))
 
 
 def add_goal(topic: str, name: str, description: str) -> None:

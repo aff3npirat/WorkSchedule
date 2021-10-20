@@ -11,7 +11,6 @@ class TestSchedule(unittest.TestCase):
     in_file = "./test_schedule.txt"
 
     def setUp(self) -> None:
-        schedule.work_timer = work_timer.WorkTimer()
         schedule.from_file(self.in_file)
         schedule.load("test_schedule")
 
@@ -55,6 +54,14 @@ class TestSchedule(unittest.TestCase):
         # test mark_done
         schedule.mark_done("Lernen", "Goal#1")
         self.assertEqual(schedule.goals["Lernen"][0].done, True)
+        self.assertRaises(schedule.NoSuchTopic,
+                          schedule.mark_done,
+                          "Schwimmen",
+                          "")
+        self.assertRaises(schedule.NoSuchGoal,
+                          schedule.mark_done,
+                          "Lernen",
+                          "Goal#-1")
 
         # test goals after reset
         schedule.add_goal("Lernen", "Goal#2", "not so important!")
@@ -84,12 +91,33 @@ class TestSchedule(unittest.TestCase):
                     "LustigeSachen": [],
                     "Skaten": []}
         self.assertEqual(schedule.goals, expected)
+        self.assertRaises(schedule.NoSuchTopic,
+                          schedule.add_goal,
+                          "Schwimmen",
+                          "",
+                          "")
 
     def test_remove_topic(self):
         schedule.remove_topic("LustigeSachen")
         self.assertEqual(schedule.schedule, {"Lernen": 5.0, "Arbeiten": 20.0})
         self.assertEqual(schedule.remaining, {"Lernen": 0.0, "Arbeiten": 0.0})
         self.assertEqual(schedule.goals, {"Lernen": [], "Arbeiten": []})
+        self.assertRaises(schedule.NoSuchTopic,
+                          schedule.remove_topic,
+                          "Schwimmen")
+
+    def test_start_working(self):
+        schedule.start_working("Lernen")
+        self.assertRaises(schedule.NoSuchTopic,
+                          schedule.start_working,
+                          "")
+        self.assertRaises(work_timer.TimerAlreadyRunning,
+                          schedule.start_working,
+                          "Lernen")
+        schedule.stop_working()
+
+    def test_stop_working(self):
+        self.assertRaises(work_timer.NoTimerRunning, schedule.stop_working)
 
 
 if __name__ == '__main__':
