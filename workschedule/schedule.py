@@ -227,11 +227,12 @@ def overview(detailed: bool) -> str:
 
 
 # TODO
-def topic_overview(detailed: bool) -> str:
+def topic_overview(topic: str, detailed: bool) -> str:
     """Get an overview of one topic.
 
     Parameters
     ----------
+    topic
     detailed
-        Show goal descriptions
+        Show goal descriptions and seperate remaining from worked hours.
     """
