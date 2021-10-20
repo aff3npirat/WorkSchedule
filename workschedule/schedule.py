@@ -81,7 +81,8 @@ def from_file(fpath: str) -> None:
 def reset(carry_on: list[str] = None) -> None:
     """Starts a new period.
 
-    Resets worked hours, remaining and removes all done goals.
+    Resets worked hours, remaining and removes all done goals. Stops running
+    work timers.
 
     Parameters
     ----------
@@ -90,6 +91,11 @@ def reset(carry_on: list[str] = None) -> None:
     """
     if carry_on is None:
         carry_on = []
+
+    try:
+        stop_working()
+    except:
+        pass
 
     for topic in schedule:
         if topic in carry_on:
