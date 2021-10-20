@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass(eq=False)
+@dataclass(order=True)
 class Goal:
     """A goal can be a task or note."""
     name: str
@@ -15,9 +15,23 @@ class Goal:
         return self.name
 
 
+def sort(goals: list[Goal]) -> list[Goal]:
+    """Sorts a list of goals.
+
+    Goals are first sorted by done (goals that are done are put at end of list)
+    and then alphabetical.
+    """
+    done_goals = get_dones(goals)
+    notdone_goals = get_not_dones(goals)
+    return sorted(notdone_goals) + sorted(done_goals)
+
+
 def get_not_dones(goals: list[Goal]) -> list[Goal]:
-    """Retursn all done goals."""
     return _get_goals(goals, "done", False)
+
+
+def get_dones(goals: list[Goal]) -> list[Goal]:
+    return _get_goals(goals, "done", True)
 
 
 def _get_goals(goals: list[Goal], attrib: str, value) -> list[Goal]:
