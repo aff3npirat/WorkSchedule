@@ -66,6 +66,31 @@ class TestSchedule(unittest.TestCase):
                     "LustigeSachen": []}
         self.assertEqual(schedule.goals, expected)
 
+    def test_add_topic(self):
+        schedule.add_topic("Skaten", 20.5)
+        schedule.add_topic("Lernen", 12)
+        expected = {"Lernen": 12.0,
+                    "Arbeiten": 20.0,
+                    "LustigeSachen": 15.5,
+                    "Skaten": 20.5}
+        self.assertEqual(schedule.schedule, expected)
+        expected = {"Lernen": 0.0,
+                    "Arbeiten": 0.0,
+                    "LustigeSachen": 0.0,
+                    "Skaten": 0.0}
+        self.assertEqual(schedule.remaining, expected)
+        expected = {"Lernen": [],
+                    "Arbeiten": [],
+                    "LustigeSachen": [],
+                    "Skaten": []}
+        self.assertEqual(schedule.goals, expected)
+
+    def test_remove_topic(self):
+        schedule.remove_topic("LustigeSachen")
+        self.assertEqual(schedule.schedule, {"Lernen": 5.0, "Arbeiten": 20.0})
+        self.assertEqual(schedule.remaining, {"Lernen": 0.0, "Arbeiten": 0.0})
+        self.assertEqual(schedule.goals, {"Lernen": [], "Arbeiten": []})
+
 
 if __name__ == '__main__':
     unittest.main()

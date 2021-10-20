@@ -8,7 +8,6 @@ import helpers
 import history
 import work_timer
 
-
 # topic -> hours to work
 schedule: dict = {}
 # topic -> hours remaining
@@ -16,6 +15,23 @@ remaining: dict = {}
 # topic -> Goal
 goals = {}
 work_timer = work_timer.WorkTimer()
+
+
+def add_topic(new_topic: str, hours: float) -> None:
+    """Adds a new topic to current schedule"""
+    schedule[new_topic] = hours
+    remaining[new_topic] = 0.0
+    goals[new_topic] = []
+
+
+def remove_topic(topic: str) -> None:
+    """Remove a topic from current schedule."""
+    if topic in schedule:
+        del schedule[topic]
+        del remaining[topic]
+        del goals[topic]
+    else:
+        raise KeyError
 
 
 def from_file(fpath: str) -> None:
