@@ -25,6 +25,10 @@ class NoSuchGoal(Exception):
     pass
 
 
+class DuplicateGoalName(Exception):
+    pass
+
+
 def add_topic(new_topic: str, hours: float) -> None:
     """Adds a new topic to current schedule"""
     schedule[new_topic] = hours
@@ -81,8 +85,8 @@ def from_file(fpath: str) -> None:
 def reset(carry_on: list[str] = None) -> None:
     """Starts a new period.
 
-    Resets worked hours, remaining and removes all done goals. Stops running
-    work timers.
+    Resets worked hours, remaining and removes all done goals, stops running
+    work timers and adds periodic goals.
 
     Parameters
     ----------
@@ -102,6 +106,9 @@ def reset(carry_on: list[str] = None) -> None:
             remaining[topic] += schedule[topic] - history.get_hours(topic)
         else:
             remaining[topic] = 0.0
+
+        for goal_ in goal.get_periodics(goals[topic]):
+            goal_.done = False
         goals[topic] = goal.get_not_dones(goals[topic])
     history.history.append(history.Period())
 
@@ -125,7 +132,7 @@ def stop_working() -> None:
     work(topic, round(work_timer_.hours(), 1))
 
 
-def add_goal(topic: str, name: str, description: str) -> None:
+def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
     """Adds a goal to current period.
 
     Parameters
@@ -135,21 +142,29 @@ def add_goal(topic: str, name: str, description: str) -> None:
         Used to adress goal, e.g. mark as done.
     description
         The goal will be readded every period.
+    periodic
+        Goal is added again on reset.
     """
     if topic not in schedule:
         raise NoSuchTopic
-    new_goal = goal.Goal(name, description)
+    if name in [goal_ for goal_list in goals.values() for goal_ in goal_list]:
+        raise DuplicateGoalName
+
+    new_goal = goal.Goal(name, description, periodic)
     goals[topic].append(new_goal)
 
 
-def mark_done(topic: str, goal_name: str) -> None:
+def mark_done(goal_name: str) -> None:
     """Mark a goal as done."""
-    if topic not in schedule:
-        raise NoSuchTopic
-    try:
-        idx = goals[topic].index(goal_name)
-    except ValueError:
+    topic = None
+    for topic_ in goals:
+        if goal_name in goals[topic_]:
+            topic = topic_
+            break
+    if topic is None:
         raise NoSuchGoal
+
+    idx = goals[topic].index(goal_name)
     goals[topic][idx].done = True
 
 
@@ -183,6 +198,7 @@ def save(name: str) -> None:
         pickle.dump(history.history, file)
 
 
+# TODO: highligt done goals
 def overview(detailed: bool) -> str:
     """Get current period in printable format.
 
@@ -205,8 +221,7 @@ def overview(detailed: bool) -> str:
     hours_towork = sum(schedule.values())
     hours_remaining = sum(remaining.values())
     if detailed:
-        sign = "+" if hours_remaining >= 0 else ""
-        rows[2].append(f"{hours_towork:g}({sign}{hours_remaining:g})")
+        rows[2].append(f"{hours_towork:g}({hours_remaining:+g})")
     else:
         rows[2].append(f"{hours_towork + hours_remaining:g}")
     rows[3].append("")
@@ -214,8 +229,7 @@ def overview(detailed: bool) -> str:
         rows[0].append(topic)
         rows[1].append(f"{history.get_hours(topic):g}")
         if detailed:
-            sign = "+" if remaining[topic] >= 0 else ""
-            rows[2].append(f"{schedule[topic]:g}({sign}{remaining[topic]:g})")
+            rows[2].append(f"{schedule[topic]:g}({remaining[topic]:+g})")
         else:
             rows[2].append(f"{schedule[topic] + remaining[topic]:g}")
         notes_cell = ""
@@ -260,5 +274,13 @@ def topic_overview(topic: str, detailed: bool) -> str:
     CogScie: 10/20(+3)
     ------------------
     Goal#1 - This was my first goal.
-    Goal#2 - This is my second goal. I would rather...
+    Goal#2 - This is my second goal. I would rather never...
     """
+    if topic not in schedule:
+        raise NoSuchTopic
+
+    header = f"{topic}: {history.get_hours(topic):g}/{schedule[topic]:g}" \
+             f"({remaining[topic]:+g})"
+    header += "\n" + len(header) * "-"
+    goal_text = ""
+    line_length = 60

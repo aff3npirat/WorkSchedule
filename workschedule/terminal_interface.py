@@ -1,10 +1,11 @@
 import argparse
 
 import schedule
-from schedule import NoSuchTopic, NoSuchGoal
+from schedule import NoSuchTopic, NoSuchGoal, DuplicateGoalName
 from work_timer import NoTimerRunning, TimerAlreadyRunning
 
 
+# TODO: unified error messages
 def overview(args) -> None:
     if args.topic == "":
         print(schedule.overview(args.detail))
@@ -13,20 +14,17 @@ def overview(args) -> None:
 
 
 def add_topic(args) -> None:
-    if args.topic == "":
+    if args.topic == "''":
         print("'' is not a valid topic name.")
     else:
         schedule.add_topic(args.topic, args.hours)
 
 
 def remove_topic(args) -> None:
-    if args.topic == "":
-        print("'' is not a valid topic name.")
-    else:
-        try:
-            schedule.remove_topic(args.topic)
-        except NoSuchTopic:
-            print(f"Could not find {args.topic} in current schedule.")
+    try:
+        schedule.remove_topic(args.topic)
+    except NoSuchTopic:
+        print(f"Could not find {args.topic} in current schedule.")
 
 
 def work(args) -> None:
@@ -40,39 +38,53 @@ def work(args) -> None:
 
 
 def workt(args) -> None:
-    if args.stop:
+    if args.topic == "":
         try:
             schedule.stop_working()
         except NoTimerRunning:
-            print("There is no timer running.")
-    elif args.topic != "":
+            print("There is no active timer.")
+    else:
         try:
             schedule.start_working(args.topic)
         except TimerAlreadyRunning:
             print("There is already a timer running.")
         except NoSuchTopic:
             print(f"Could not find topic {args.topic}.")
-    else:
-        print("'' is not a valid topic name.")
 
 
 def goal_cmd(args) -> None:
     """Selects function to call based on args.cmd."""
+    if args.cmd == "add":
+        add_goal_cmd(args.topic, args.periodic)
+    elif args.cmd == "done":
+        if args.periodic:
+            print("Invalid use of -p.")
+            return
+        mark_done_cmd(args.topic)
+    else:
+        print(f"There is no command '{args.cmd}'.")
 
 
-def add_goal(topic: str, name: str, description: str) -> None: pass
+def add_goal_cmd(topic: str, periodic: bool) -> None:
+    name = input("Enter name: ").rstrip()
+    if name == "":
+        print("'' is not a valid name.")
+        return
+    description = input("Enter description: ").rstrip()
+
+    try:
+        schedule.add_goal(topic, name, description, periodic)
+    except NoSuchTopic:
+        print(f"Could not find topic {topic}.")
+    except DuplicateGoalName:
+        print("Goal name must be unique.")
 
 
-def done(topic: str, periodic: bool) -> None: pass
-
-
-def load(args) -> None: pass
-
-
-def new(args) -> None: pass
-
-
-# TODO: add_topic, remove_topic, goal add/done
+def mark_done_cmd(name: str):
+    try:
+        schedule.mark_done(name)
+    except NoSuchGoal:
+        print(f"Could not find goal {name}.")
 
 
 parser = argparse.ArgumentParser(description="main parser")
@@ -107,11 +119,6 @@ parser_work.set_defaults(func=work)
 
 parser_workt = subparsers.add_parser("workt", help="workt help")
 parser_workt.add_argument("-t", "--topic", default="", type=str, help="-t help")
-parser_workt.add_argument("-s",
-                          "--stop",
-                          default=False,
-                          action="store_true",
-                          help="-s help")
 parser_workt.set_defaults(func=workt)
 
 parser_goal = subparsers.add_parser("goal", help="goal help")
@@ -123,23 +130,6 @@ parser_goal.add_argument("-p",
                          action="store_true",
                          help="-p help")
 parser_goal.set_defaults(func=goal_cmd)
-
-parser_load = subparsers.add_parser("load", help="load help")
-parser_load.add_argument("name", type=str, help="name help")
-parser_load.add_argument("-s",
-                         "--no-saving",
-                         default=False,
-                         action="store_true",
-                         help="-s help")
-parser_load.set_defaults(func=load)
-
-parser_new = subparsers.add_parser("new", help="new help")
-parser_new.add_argument("-l",
-                        "--no-loading",
-                        default=False,
-                        action="store_true",
-                        help="-l help")
-parser_new.set_defaults(func=new)
 
 args = parser.parse_args()
 # args.func(args)

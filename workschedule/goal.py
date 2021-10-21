@@ -6,6 +6,7 @@ class Goal:
     """A goal can be a task or note."""
     name: str
     description: str
+    periodic: bool
     done: bool = False
 
     def __eq__(self, other) -> bool:
@@ -32,6 +33,10 @@ def get_not_dones(goals: list[Goal]) -> list[Goal]:
 
 def get_dones(goals: list[Goal]) -> list[Goal]:
     return _get_goals(goals, "done", True)
+
+
+def get_periodics(goals: list[Goal]) -> list[Goal]:
+    return _get_goals(goals, "periodic", True)
 
 
 def _get_goals(goals: list[Goal], attrib: str, value) -> list[Goal]:
