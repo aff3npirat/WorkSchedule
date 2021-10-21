@@ -4,13 +4,15 @@ import schedule
 from schedule import NoSuchTopic, NoSuchGoal, DuplicateGoalName
 from work_timer import NoTimerRunning, TimerAlreadyRunning
 
+LINE_LENGTH = 60
+
 
 # TODO: unified error messages
 def overview(args) -> None:
     if args.topic == "":
         print(schedule.overview(args.detail))
     else:
-        print(schedule.topic_overview(args.topic, args.detail))
+        print(schedule.topic_overview(args.topic, args.detail, LINE_LENGTH))
 
 
 def add_topic(args) -> None:
@@ -69,6 +71,9 @@ def add_goal_cmd(topic: str, periodic: bool) -> None:
     name = input("Enter name: ").rstrip()
     if name == "":
         print("'' is not a valid name.")
+        return
+    if len(name) > LINE_LENGTH:
+        print(f"Name can not be longer than {LINE_LENGTH} chars.")
         return
     description = input("Enter description: ").rstrip()
 

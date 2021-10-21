@@ -36,10 +36,30 @@ class TestSchedule(unittest.TestCase):
         schedule.add_goal("Lernen", "Goal#4", "", False)
         schedule.add_goal("Lernen", "Goal#5", "", False)
         schedule.add_goal("Arbeiten", "Wirklicheinelange-notiz", "", False)
+        schedule.mark_done("Goal#1")
         print("---Without detail---")
         print(schedule.overview(False), end="\n\n")
         print("--With detail---")
         print(schedule.overview(True), end="\n\n")
+
+    def test_topic_overview(self):
+        schedule.work("Lernen", 6.5)
+        schedule.work("Arbeiten", 14)
+        schedule.reset(["Lernen", "Arbeiten"])
+        schedule.work("Lernen", 4)
+        schedule.add_goal("Lernen", "Goal#1", "a" * 50, False)
+        schedule.add_goal("Lernen", "Goal#2", "b" * 60, True)
+        schedule.add_goal("Lernen", "Goal#3", "c" * 100, False)
+        schedule.add_goal("Lernen", "Goal#4", "d" * 48 + " " + "e" * 20, False)
+        schedule.add_goal("Arbeiten",
+                          "Goal#5",
+                          "hoffentlich sieht man mich nicht.",
+                          False)
+        schedule.mark_done("Goal#1")
+        print("---Without detail---")
+        print(schedule.topic_overview("Lernen", False, 60), end="\n\n")
+        print("--With detail---")
+        print(schedule.topic_overview("Lernen", True, 60), end="\n\n")
 
     def test_goals(self):
         # test add_goal

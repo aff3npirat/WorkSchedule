@@ -133,7 +133,7 @@ class TestTerminalInterface(unittest.TestCase):
                              out.getvalue().rstrip("\n"))
 
     @mock.patch("terminal_interface.input", create=True)
-    def test_goal(self, mocked_input):
+    def test_goal_cmd(self, mocked_input):
         parser_goal = argparse.ArgumentParser()
         parser_goal.add_argument("cmd", type=str, help="cmd help")
         parser_goal.add_argument("topic", type=str, help="topic help")

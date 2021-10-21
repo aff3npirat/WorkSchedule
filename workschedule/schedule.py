@@ -1,6 +1,7 @@
 import ntpath
 import pickle
 import texttable
+import textwrap
 from pathlib import Path
 
 import goal
@@ -225,15 +226,18 @@ def overview(detailed: bool) -> str:
     else:
         rows[2].append(f"{hours_towork + hours_remaining:g}")
     rows[3].append("")
+
     for topic in schedule:
         rows[0].append(topic)
         rows[1].append(f"{history.get_hours(topic):g}")
+
         if detailed:
             rows[2].append(f"{schedule[topic]:g}({remaining[topic]:+g})")
         else:
             rows[2].append(f"{schedule[topic] + remaining[topic]:g}")
+
         notes_cell = ""
-        for goal_ in goals[topic]:
+        for goal_ in goal.sort(goals[topic]):
             notes_cell += f"{goal_}\n"
         notes_cell = notes_cell.rstrip("\n")
         rows[3].append(notes_cell)
@@ -249,8 +253,7 @@ def overview(detailed: bool) -> str:
     return table.draw()
 
 
-# TODO
-def topic_overview(topic: str, detailed: bool) -> str:
+def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
     """Get an overview of one topic.
 
     Parameters
@@ -259,10 +262,12 @@ def topic_overview(topic: str, detailed: bool) -> str:
         Name of topic.
     detailed
         Expand goal descriptions.
+    line_length
+        Number of chars in single line.
 
     Examples
     --------
-    >>> topic_overview("CogScie", True)
+    >>> topic_overview("CogScie", True, 60)
     CogScie: 10/20(+3)
     ------------------
     Goal#1
@@ -270,7 +275,7 @@ def topic_overview(topic: str, detailed: bool) -> str:
    Goal#2
         This is my second goal. I would rather never fulfill it.
 
-    >>> topic_overview("CogScie", False)
+    >>> topic_overview("CogScie", False, 60)
     CogScie: 10/20(+3)
     ------------------
     Goal#1 - This was my first goal.
@@ -281,6 +286,17 @@ def topic_overview(topic: str, detailed: bool) -> str:
 
     header = f"{topic}: {history.get_hours(topic):g}/{schedule[topic]:g}" \
              f"({remaining[topic]:+g})"
-    header += "\n" + len(header) * "-"
-    goal_text = ""
-    line_length = 60
+    header += "\n" + len(header) * "-" + "\n"
+
+    goal_descriptions = ""
+    if detailed:
+        for goal_ in goal.sort(goals[topic]):
+            goal_descriptions += goal_.name + "\n"
+            goal_descriptions += textwrap.indent(
+                helpers.split_lines(goal_.description, line_length - 4),
+                " " * 4) + "\n"
+    else:
+        for goal_ in goal.sort(goals[topic]):
+            line = goal_.name + " - " + goal_.description
+            goal_descriptions += helpers.cutoff(line, line_length) + "\n"
+    return header + goal_descriptions
