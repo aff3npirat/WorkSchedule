@@ -47,7 +47,7 @@ def remove_topic(topic: str) -> None:
         raise NoSuchTopic(topic)
 
 
-def from_file(fpath: str) -> None:
+def from_file(fpath: str, name: str = None) -> None:
     """Builds a new schedule.
 
     Schedule must be loaded before used.
@@ -56,6 +56,8 @@ def from_file(fpath: str) -> None:
     ----------
     fpath
         Path to file.
+    name
+        Name assigned to schedule. If None file name will be used.
     """
     fpath = Path(fpath)
     if not fpath.is_file():
@@ -73,9 +75,10 @@ def from_file(fpath: str) -> None:
             remaining_[topic] = 0.0
             goals_[topic] = []
 
-    name = ntpath.basename(fpath)
-    if "." in name:
-        name = name.split(".")[0]
+    if name is None:
+        name = ntpath.basename(fpath)
+        if "." in name:
+            name = name.split(".")[0]
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "w+b") as file:
         pickle.dump([schedule_, remaining_, goals_], file)

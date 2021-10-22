@@ -19,7 +19,7 @@ def handle(err: Exception) -> None:
     elif type(err) is TimerAlreadyRunning:
         print("Can not start work-timer: timer is already active.")
     else:
-        print(err)
+        raise err
 
 
 def overview(args) -> None:
@@ -91,6 +91,16 @@ def reset(args):
     schedule.reset(args.topics)
 
 
+def new_schedule(args):
+    schedule.from_file(args.file)
+    schedule.load(args.name)
+    print(f"Set {args.name} as active.")
+
+
+def load_schedule(args):
+    schedule.load(args.name)
+
+
 parser = argparse.ArgumentParser(description="main parser")
 subparsers = parser.add_subparsers(description="subparsers")
 
@@ -147,6 +157,15 @@ parser_goal.set_defaults(func=goal_cmd)
 parser_reset = subparsers.add_parser("reset", help="reset help")
 parser_reset.add_argument("topics", nargs="*", type=str, help="topics help")
 parser_reset.set_defaults(func=reset)
+
+parser_new = subparsers.add_parser("new", help="new help")
+parser_new.add_argument("-f", "--file", required=True, type=str, help="-f help")
+parser_new.add_argument("-n", "--name", required=True, type=str, help="-n help")
+parser_new.set_defaults(func=new_schedule)
+
+parser_load = subparsers.add_parser("load", help="load help")
+parser_load.add_argument("name", type=str, help="name help")
+parser_load.set_defaults(func=load_schedule)
 
 
 def main():
