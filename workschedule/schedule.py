@@ -15,6 +15,8 @@ schedule: dict = {}
 remaining: dict = {}
 # topic -> Goal
 goals = {}
+# TODO: save worktimer
+#       so that work timer state (if running or not) is not lost after each cmd
 work_timer_ = work_timer.WorkTimer()
 
 
@@ -174,6 +176,9 @@ def mark_done(goal_name: str) -> None:
 
 def load(name: str) -> None:
     """Loads schedule and history."""
+    if name is None:
+        return
+
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "rb") as file:
         schedule_, remaining_, goals_ = pickle.load(file)
@@ -195,11 +200,26 @@ def save(name: str) -> None:
     name
         Name used to load schedule.
     """
+    if name is None:
+        return
+
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "w+b") as file:
         pickle.dump([schedule, remaining, goals], file)
     with open(root_dir / f"{name}.history", "w+b") as file:
         pickle.dump(history.history, file)
+
+
+def get_active_schedule() -> str:
+    """Returns name of active schedule."""
+    with open(helpers.get_top_directory() / "curr_schedule", "rt") as file:
+        lines = file.readlines()
+    return lines[0] if len(lines) >= 1 else None
+
+
+def set_as_active(name: str) -> None:
+    with open(helpers.get_top_directory() / "curr_schedule", "wt") as file:
+        file.write(name)
 
 
 # TODO: highligt done goals

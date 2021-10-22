@@ -40,6 +40,7 @@ def remove_topic(args) -> None:
     schedule.remove_topic(args.topic)
 
 
+# TODO: output time when starting timer, output duraton when stopping timer
 def work(args) -> None:
     if args.stop and not (args.topic is None and args.hours is None):
         print("Invalid use of -s.")
@@ -50,9 +51,11 @@ def work(args) -> None:
 
     if args.stop:
         schedule.stop_working()
+        print("Stopping work-timer.")
     else:
         if args.hours is None:
             schedule.start_working(args.topic)
+            print("Starting work-timer.")
         else:
             schedule.work(args.topic, args.hours)
 
@@ -92,13 +95,12 @@ def reset(args):
 
 
 def new_schedule(args):
-    schedule.from_file(args.file)
-    schedule.load(args.name)
+    schedule.from_file(args.file, args.name)
+
+
+def as_active(args):
+    schedule.set_as_active(args.name)
     print(f"Set {args.name} as active.")
-
-
-def load_schedule(args):
-    schedule.load(args.name)
 
 
 parser = argparse.ArgumentParser(description="main parser")
@@ -165,13 +167,16 @@ parser_new.set_defaults(func=new_schedule)
 
 parser_load = subparsers.add_parser("load", help="load help")
 parser_load.add_argument("name", type=str, help="name help")
-parser_load.set_defaults(func=load_schedule)
+parser_load.set_defaults(func=as_active)
 
 
 def main():
     args = parser.parse_args()
     try:
+        name = schedule.get_active_schedule()
+        schedule.load(name)
         args.func(args)
+        schedule.save(name)
     except Exception as err:
         handle(err)
 

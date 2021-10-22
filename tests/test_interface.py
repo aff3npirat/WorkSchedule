@@ -1,4 +1,3 @@
-import argparse
 import unittest
 import sys
 from contextlib import contextmanager
