@@ -87,7 +87,8 @@ def mark_done_cmd(name: str):
     schedule.mark_done(name)
 
 
-def reset(args): pass
+def reset(args):
+    schedule.reset(args.topics)
 
 
 parser = argparse.ArgumentParser(description="main parser")
@@ -143,9 +144,18 @@ parser_goal.add_argument("-p",
                          help="-p help")
 parser_goal.set_defaults(func=goal_cmd)
 
-if __name__ == '__main__':
+parser_reset = subparsers.add_parser("reset", help="reset help")
+parser_reset.add_argument("topics", nargs="*", type=str, help="topics help")
+parser_reset.set_defaults(func=reset)
+
+
+def main():
     args = parser.parse_args()
     try:
         args.func(args)
     except Exception as err:
         handle(err)
+
+
+if __name__ == '__main__':
+    main()
