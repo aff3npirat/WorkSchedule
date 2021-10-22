@@ -32,21 +32,45 @@ class TestTerminalInterface(unittest.TestCase):
         parser_work = argparse.ArgumentParser()
         parser_work.add_argument("topic",
                                  type=str,
+                                 nargs="?",
+                                 default=None,
                                  help="topic help")
         parser_work.add_argument("hours",
                                  type=float,
+                                 nargs="?",
+                                 default=None,
                                  help="hours help")
+        parser_work.add_argument("-s",
+                                 "--stop",
+                                 default=False,
+                                 action="store_true",
+                                 help="-s help")
 
         with captured_output() as (out, err):
             args = parser_work.parse_args(["", "4"])
             interface.work(args)
-            self.assertEqual("'' is not a valid topic name.",
+            self.assertEqual("Could not find topic ''.",
                              out.getvalue().splitlines()[0])
 
             args = parser_work.parse_args(["Schwimmen", "5"])
             interface.work(args)
-            self.assertEqual("Could not find topic Schwimmen.",
+            self.assertEqual("Could not find topic 'Schwimmen'.",
                              out.getvalue().splitlines()[1])
+
+            args = parser_work.parse_args("Lernen -s".split())
+            interface.work(args)
+            self.assertEqual("Invalid use of -s.",
+                             out.getvalue().splitlines()[2])
+
+            args = parser_work.parse_args("'' 5 -s".split())
+            interface.work(args)
+            self.assertEqual("Invalid use of -s.",
+                             out.getvalue().splitlines()[3])
+
+            args = parser_work.parse_args([])
+            interface.work(args)
+            self.assertEqual("At least one argument is required.",
+                             out.getvalue().splitlines()[4])
 
     def test_workt(self):
         parser_workt = argparse.ArgumentParser()

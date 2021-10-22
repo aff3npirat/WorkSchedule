@@ -253,6 +253,7 @@ def overview(detailed: bool) -> str:
     return table.draw()
 
 
+# TODO: highlight done goals
 def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
     """Get an overview of one topic.
 

@@ -30,28 +30,31 @@ def remove_topic(args) -> None:
 
 
 def work(args) -> None:
-    if args.topic == "":
-        print("'' is not a valid topic name.")
-    else:
-        try:
-            schedule.work(args.topic, args.hours)
-        except NoSuchTopic:
-            print(f"Could not find topic {args.topic}.")
+    if args.stop and not (args.topic is None and args.hours is None):
+        print("Invalid use of -s.")
+        return
+    if not any([args.stop, args.topic, args.hours]):
+        print("At least one argument is required.")
+        return
 
-
-def workt(args) -> None:
-    if args.topic == "":
+    if args.stop:
         try:
             schedule.stop_working()
         except NoTimerRunning:
             print("There is no active timer.")
     else:
-        try:
-            schedule.start_working(args.topic)
-        except TimerAlreadyRunning:
-            print("There is already a timer running.")
-        except NoSuchTopic:
-            print(f"Could not find topic {args.topic}.")
+        if args.hours is None:
+            try:
+                schedule.start_working(args.topic)
+            except TimerAlreadyRunning:
+                print("There is already a timer running.")
+            except NoSuchTopic:
+                print(f"Could not find topic '{args.topic}'.")
+        else:
+            try:
+                schedule.work(args.topic, args.hours)
+            except NoSuchTopic:
+                print(f"Could not find topic '{args.topic}'.")
 
 
 def goal_cmd(args) -> None:
@@ -92,6 +95,9 @@ def mark_done_cmd(name: str):
         print(f"Could not find goal {name}.")
 
 
+def reset(args): pass
+
+
 parser = argparse.ArgumentParser(description="main parser")
 subparsers = parser.add_subparsers(description="subparsers")
 
@@ -118,13 +124,22 @@ parser_remove_topic.add_argument("topic", type=str, help="topic help")
 parser_remove_topic.set_defaults(func=remove_topic)
 
 parser_work = subparsers.add_parser("work", help="work help")
-parser_work.add_argument("topic", type=str, help="topic help")
-parser_work.add_argument("hours", type=float, help="hours help")
+parser_work.add_argument("topic",
+                         type=str,
+                         nargs="?",
+                         default=None,
+                         help="topic help")
+parser_work.add_argument("hours",
+                         type=float,
+                         nargs="?",
+                         default=None,
+                         help="hours help")
+parser_work.add_argument("-s",
+                         "--stop",
+                         default=False,
+                         action="store_true",
+                         help="-s help")
 parser_work.set_defaults(func=work)
-
-parser_workt = subparsers.add_parser("workt", help="workt help")
-parser_workt.add_argument("-t", "--topic", default="", type=str, help="-t help")
-parser_workt.set_defaults(func=workt)
 
 parser_goal = subparsers.add_parser("goal", help="goal help")
 parser_goal.add_argument("cmd", type=str, help="cmd help")
