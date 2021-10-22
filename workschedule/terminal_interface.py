@@ -7,6 +7,7 @@ from work_timer import NoTimerActive, TimerAlreadyRunning
 LINE_LENGTH = 60
 
 
+# TODO: add .bat files, that call python.exe in workschedule env
 def handle(err: Exception) -> None:
     if type(err) is NoSuchTopic:
         print(f"Could not find topic '{err}'.")
@@ -103,7 +104,13 @@ def as_active(args):
     print(f"Set {args.name} as active.")
 
 
+def get_active(args):
+    name = schedule.get_active_schedule()
+    print(f"Active schedule is: {name}")
+
+
 parser = argparse.ArgumentParser(description="main parser")
+parser.set_defaults(func=get_active)
 subparsers = parser.add_subparsers(description="subparsers")
 
 parser_overview = subparsers.add_parser("overview", help="overview help")
