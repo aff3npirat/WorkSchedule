@@ -5,7 +5,7 @@ class TimerAlreadyRunning(Exception):
     pass
 
 
-class NoTimerRunning(Exception):
+class NoTimerActive(Exception):
     pass
 
 
@@ -30,7 +30,7 @@ class WorkTimer:
     @staticmethod
     def stop():
         if WorkTimer.topic is None:
-            raise NoTimerRunning
+            raise NoTimerActive
         WorkTimer.toc = datetime.now()
         WorkTimer.topic = None
 

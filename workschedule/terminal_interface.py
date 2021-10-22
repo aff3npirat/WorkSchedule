@@ -1,15 +1,29 @@
 import argparse
 
 import schedule
-from schedule import NoSuchTopic, NoSuchGoal, DuplicateGoalName
-from work_timer import NoTimerRunning, TimerAlreadyRunning
+from schedule import NoSuchTopic, NoSuchGoal, DuplicateGoal
+from work_timer import NoTimerActive, TimerAlreadyRunning
 
 LINE_LENGTH = 60
 
 
-# TODO: unified error messages
+def handle(err: Exception) -> None:
+    if type(err) is NoSuchTopic:
+        print(f"Could not find topic '{err}'.")
+    elif type(err) is NoSuchGoal:
+        print(f"Could not find goal '{err}'.")
+    elif type(err) is DuplicateGoal:
+        print(f"Goal name must be unique.")
+    elif type(err) is NoTimerActive:
+        print("Can not stop work-timer: no timer active.")
+    elif type(err) is TimerAlreadyRunning:
+        print("Can not start work-timer: timer is already active.")
+    else:
+        print(err)
+
+
 def overview(args) -> None:
-    if args.topic == "":
+    if args.topic is None:
         print(schedule.overview(args.detail))
     else:
         print(schedule.topic_overview(args.topic, args.detail, LINE_LENGTH))
@@ -17,16 +31,13 @@ def overview(args) -> None:
 
 def add_topic(args) -> None:
     if args.topic == "''":
-        print("'' is not a valid topic name.")
+        print("'' is not a valid name.")
     else:
         schedule.add_topic(args.topic, args.hours)
 
 
 def remove_topic(args) -> None:
-    try:
-        schedule.remove_topic(args.topic)
-    except NoSuchTopic:
-        print(f"Could not find {args.topic} in current schedule.")
+    schedule.remove_topic(args.topic)
 
 
 def work(args) -> None:
@@ -38,23 +49,12 @@ def work(args) -> None:
         return
 
     if args.stop:
-        try:
-            schedule.stop_working()
-        except NoTimerRunning:
-            print("There is no active timer.")
+        schedule.stop_working()
     else:
         if args.hours is None:
-            try:
-                schedule.start_working(args.topic)
-            except TimerAlreadyRunning:
-                print("There is already a timer running.")
-            except NoSuchTopic:
-                print(f"Could not find topic '{args.topic}'.")
+            schedule.start_working(args.topic)
         else:
-            try:
-                schedule.work(args.topic, args.hours)
-            except NoSuchTopic:
-                print(f"Could not find topic '{args.topic}'.")
+            schedule.work(args.topic, args.hours)
 
 
 def goal_cmd(args) -> None:
@@ -80,19 +80,11 @@ def add_goal_cmd(topic: str, periodic: bool) -> None:
         return
     description = input("Enter description: ").rstrip()
 
-    try:
-        schedule.add_goal(topic, name, description, periodic)
-    except NoSuchTopic:
-        print(f"Could not find topic {topic}.")
-    except DuplicateGoalName:
-        print("Goal name must be unique.")
+    schedule.add_goal(topic, name, description, periodic)
 
 
 def mark_done_cmd(name: str):
-    try:
-        schedule.mark_done(name)
-    except NoSuchGoal:
-        print(f"Could not find goal {name}.")
+    schedule.mark_done(name)
 
 
 def reset(args): pass
@@ -102,11 +94,11 @@ parser = argparse.ArgumentParser(description="main parser")
 subparsers = parser.add_subparsers(description="subparsers")
 
 parser_overview = subparsers.add_parser("overview", help="overview help")
-parser_overview.add_argument("-t",
-                             "--topic",
-                             default="",
+parser_overview.add_argument("topic",
+                             nargs="?",
+                             default=None,
                              type=str,
-                             help="t help")
+                             help="topic help")
 parser_overview.add_argument("-d",
                              "--detail",
                              default=False,
@@ -151,5 +143,9 @@ parser_goal.add_argument("-p",
                          help="-p help")
 parser_goal.set_defaults(func=goal_cmd)
 
-args = parser.parse_args()
-# args.func(args)
+if __name__ == '__main__':
+    args = parser.parse_args()
+    try:
+        args.func(args)
+    except Exception as err:
+        handle(err)

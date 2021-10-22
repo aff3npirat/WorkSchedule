@@ -74,7 +74,7 @@ class TestSchedule(unittest.TestCase):
             "LustigeSachen": [],
             }
         self.assertEqual(schedule.goals, expected)
-        self.assertRaises(schedule.DuplicateGoalName,
+        self.assertRaises(schedule.DuplicateGoal,
                           schedule.add_goal,
                           "Arbeiten",
                           "Goal#1",
@@ -140,7 +140,7 @@ class TestSchedule(unittest.TestCase):
         schedule.stop_working()
 
     def test_stop_working(self):
-        self.assertRaises(work_timer.NoTimerRunning, schedule.stop_working)
+        self.assertRaises(work_timer.NoTimerActive, schedule.stop_working)
 
     def test_load(self):
         self.assertRaises(FileNotFoundError, schedule.load, "nixda")

@@ -26,7 +26,7 @@ class NoSuchGoal(Exception):
     pass
 
 
-class DuplicateGoalName(Exception):
+class DuplicateGoal(Exception):
     pass
 
 
@@ -44,7 +44,7 @@ def remove_topic(topic: str) -> None:
         del remaining[topic]
         del goals[topic]
     else:
-        raise NoSuchTopic
+        raise NoSuchTopic(topic)
 
 
 def from_file(fpath: str) -> None:
@@ -116,13 +116,13 @@ def reset(carry_on: list[str] = None) -> None:
 
 def work(topic: str, hours: float) -> None:
     if topic not in schedule:
-        raise NoSuchTopic
+        raise NoSuchTopic(topic)
     history.add_entry(history.Entry(topic, hours))
 
 
 def start_working(topic: str) -> None:
     if topic not in schedule:
-        raise NoSuchTopic
+        raise NoSuchTopic(topic)
     work_timer_.start(topic)
 
 
@@ -147,9 +147,9 @@ def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
         Goal is added again on reset.
     """
     if topic not in schedule:
-        raise NoSuchTopic
+        raise NoSuchTopic(topic)
     if name in [goal_ for goal_list in goals.values() for goal_ in goal_list]:
-        raise DuplicateGoalName
+        raise DuplicateGoal(name)
 
     new_goal = goal.Goal(name, description, periodic)
     goals[topic].append(new_goal)
@@ -163,7 +163,7 @@ def mark_done(goal_name: str) -> None:
             topic = topic_
             break
     if topic is None:
-        raise NoSuchGoal
+        raise NoSuchGoal(goal_name)
 
     idx = goals[topic].index(goal_name)
     goals[topic][idx].done = True
@@ -283,7 +283,7 @@ def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
     Goal#2 - This is my second goal. I would rather never...
     """
     if topic not in schedule:
-        raise NoSuchTopic
+        raise NoSuchTopic(topic)
 
     header = f"{topic}: {history.get_hours(topic):g}/{schedule[topic]:g}" \
              f"({remaining[topic]:+g})"
@@ -300,4 +300,4 @@ def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
         for goal_ in goal.sort(goals[topic]):
             line = goal_.name + " - " + goal_.description
             goal_descriptions += helpers.cutoff(line, line_length) + "\n"
-    return header + goal_descriptions
+    return header + goal_descriptions[:-1]
