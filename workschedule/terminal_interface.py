@@ -97,6 +97,10 @@ def mark_done_cmd(name: str):
     schedule.mark_done(name)
 
 
+# TODO: remove_goal_cmd
+def remove_goal_cmd(name: str) -> None: pass
+
+
 def reset(args):
     schedule.reset(args.topics)
 
@@ -171,6 +175,11 @@ parser_goal.set_defaults(func=goal_cmd)
 
 parser_reset = subparsers.add_parser("reset", help="reset help")
 parser_reset.add_argument("topics", nargs="*", type=str, help="topics help")
+parser_reset.add_argument("-g",
+                          "--goals",
+                          default=False,
+                          action="store_true",
+                          help="-g help")
 parser_reset.set_defaults(func=reset)
 
 parser_new = subparsers.add_parser("new", help="new help")

@@ -61,8 +61,7 @@ class TestSchedule(unittest.TestCase):
         print("--With detail---")
         print(schedule.topic_overview("Lernen", True, 60), end="\n\n")
 
-    def test_goals(self):
-        # test add_goal
+    def test_add_goal(self):
         schedule.add_goal("Lernen",
                           "Goal#1",
                           "Do some really important stuff!",
@@ -81,23 +80,32 @@ class TestSchedule(unittest.TestCase):
                           "Something else",
                           True)
 
-        # test mark_done
+    def test_mark_done(self):
+        schedule.add_goal("Lernen",
+                          "Goal#1",
+                          "Do some really important stuff!",
+                          False)
         schedule.mark_done("Goal#1")
         self.assertEqual(schedule.goals["Lernen"][0].done, True)
         self.assertRaises(schedule.NoSuchGoal,
                           schedule.mark_done,
                           "Goal#-1")
 
+    def test_reset(self):
         # test goals after reset
+        schedule.add_goal("Lernen", "Goal#1", "empty.", True)
         schedule.add_goal("Lernen", "Goal#2", "not so important!", False)
-        schedule.add_goal("Arbeiten", "Goal#3", "really stupid!", False)
-        schedule.add_goal("Arbeiten", "Goal#4", "really really stupid!", True)
+        schedule.add_goal("Lernen", "Goal#3", "really not important!", False)
+        schedule.add_goal("Arbeiten", "Goal#4", ":-d", True)
+        schedule.add_goal("Arbeiten", "Goal#5", ":-D", False)
+        schedule.add_goal("Arbeiten", "Goal#6", ":=O", False)
         schedule.mark_done("Goal#3")
-        schedule.mark_done("Goal#4")
-        schedule.reset()
-        expected = {"Lernen": [goal.Goal("Goal#2", "not so important!", False)],
+        schedule.mark_done("Goal#6")
+        schedule.reset(carry_goals=["Lernen"])
+        expected = {"Lernen": [goal.Goal("Goal#1", "empty.", True),
+                               goal.Goal("Goal#2", "not so important!", False)],
                     "Arbeiten":
-                        [goal.Goal("Goal#4", "really really stupid!", True)],
+                        [goal.Goal("Goal#4", ":-d", True)],
                     "LustigeSachen": []}
         self.assertEqual(schedule.goals, expected)
 
@@ -143,11 +151,11 @@ class TestSchedule(unittest.TestCase):
         self.assertRaises(work_timer.NoTimerActive, schedule.stop_working)
 
     def test_load(self):
-        self.assertRaises(FileNotFoundError, schedule.load, "nixda")
-        self.assertRaises(FileNotFoundError, schedule.load, "test_load")
+        # load is called in setUP
         expected = {"Lernen": 5.0, "Arbeiten": 20.0, "LustigeSachen": 15.5}
         self.assertEqual(schedule.schedule, expected)
-        self.assertIsNone(schedule.load("test_schedule"))
+        self.assertRaises(FileNotFoundError, schedule.load, "nixda")
+        self.assertRaises(FileNotFoundError, schedule.load, "test_load")
 
 
 if __name__ == '__main__':

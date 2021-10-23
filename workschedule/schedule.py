@@ -90,7 +90,7 @@ def from_file(fpath: str, name: str = None) -> None:
         pickle.dump([history.Period()], file)
 
 
-def reset(carry_on: list[str] = None) -> None:
+def reset(carry_hours: list[str] = None, carry_goals: list[str] = None) -> None:
     """Starts a new period.
 
     Resets worked hours, remaining and removes all done goals, stops running
@@ -98,11 +98,15 @@ def reset(carry_on: list[str] = None) -> None:
 
     Parameters
     ----------
-    carry_on
-        Keep remaining hours from each given topic.
+    carry_hours
+        List of topics, keep remaining hours for each topic.
+    carry_goals
+        List of topics, keep undone goals for each topic.
     """
-    if carry_on is None:
-        carry_on = []
+    if carry_hours is None:
+        carry_hours = []
+    if carry_goals is None:
+        carry_goals = []
 
     try:
         stop_working()
@@ -110,14 +114,17 @@ def reset(carry_on: list[str] = None) -> None:
         pass
 
     for topic in schedule:
-        if topic in carry_on:
+        if topic in carry_hours:
             remaining[topic] += schedule[topic] - history.get_hours(topic)
         else:
             remaining[topic] = 0.0
 
-        for goal_ in goal.get_periodics(goals[topic]):
-            goal_.done = False
-        goals[topic] = goal.get_not_dones(goals[topic])
+        if topic in carry_goals:
+            for goal_ in goal.get_periodics(goals[topic]):
+                goal_.done = False
+            goals[topic] = goal.get_not_dones(goals[topic])
+        else:
+            goals[topic] = goal.get_periodics(goals[topic])
     history.history.append(history.Period())
 
 
