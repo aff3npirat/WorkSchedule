@@ -15,8 +15,6 @@ schedule: dict = {}
 remaining: dict = {}
 # topic -> Goal
 goals = {}
-# TODO: save worktimer
-#       so that work timer state (if running or not) is not lost after each cmd
 work_timer_ = work_timer.WorkTimer()
 
 
@@ -83,7 +81,8 @@ def from_file(fpath: str, name: str = None) -> None:
             name = name.split(".")[0]
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "w+b") as file:
-        pickle.dump([schedule_, remaining_, goals_], file)
+        pickle.dump([schedule_, remaining_, goals_, work_timer.WorkTimer()],
+                    file)
     with open(root_dir / f"{name}.history", "w+b") as file:
         pickle.dump([history.Period()], file)
 
@@ -135,7 +134,7 @@ def stop_working() -> None:
     """Stops working timer and adds worked hours."""
     topic = work_timer_.topic
     work_timer_.stop()
-    work(topic, round(work_timer_.hours(), 1))
+    work(topic, round(work_timer_.hours, 1))
 
 
 def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
@@ -181,15 +180,16 @@ def load(name: str) -> None:
 
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "rb") as file:
-        schedule_, remaining_, goals_ = pickle.load(file)
+        schedule_, remaining_, goals_, timer = pickle.load(file)
     with open(root_dir / f"{name}.history", "rb") as file:
         history_ = pickle.load(file)
 
     history.history = history_
-    global schedule, remaining, goals
+    global schedule, remaining, goals, work_timer_
     schedule = schedule_
     remaining = remaining_
     goals = goals_
+    work_timer_ = timer
 
 
 def save(name: str) -> None:
@@ -205,7 +205,7 @@ def save(name: str) -> None:
 
     root_dir = helpers.get_top_directory() / "schedules"
     with open(root_dir / f"{name}.schedule", "w+b") as file:
-        pickle.dump([schedule, remaining, goals], file)
+        pickle.dump([schedule, remaining, goals, work_timer_], file)
     with open(root_dir / f"{name}.history", "w+b") as file:
         pickle.dump(history.history, file)
 
@@ -261,7 +261,10 @@ def overview(detailed: bool) -> str:
 
         notes_cell = ""
         for goal_ in goal.sort(goals[topic]):
-            notes_cell += f"{goal_}\n"
+            if goal_.done:
+                notes_cell += f"\033[32m{goal_}\033[0m\n"
+            else:
+                notes_cell += f"{goal_}\n"
         notes_cell = notes_cell.rstrip("\n")
         rows[3].append(notes_cell)
 

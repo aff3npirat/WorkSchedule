@@ -8,29 +8,36 @@ def get_top_directory() -> Path:
     return tmp_path
 
 
-def split_lines(string: str, line_length: int) -> str:
+def split_lines(text: str, line_length: int) -> str:
     """Places newlines so that no words are cut."""
-    string = list(string)
+    text = list(text)
     split_idx = line_length
-    for idx, val in enumerate(string):
+    for idx, val in enumerate(text):
         if val == " ":
             split_idx = idx
         if idx - 1 == line_length - 1:
-            if string[split_idx] == " ":
-                string[split_idx] = "\n"
+            if text[split_idx] == " ":
+                text[split_idx] = "\n"
             else:
-                string = string[:split_idx] + ["\n"] \
-                         + string[split_idx:]
-    return "".join(string)
+                text = text[:split_idx] + ["\n"] \
+                       + text[split_idx:]
+    return "".join(text)
 
 
-def cutoff(string: str, line_length: int) -> str:
-    if len(string) <= line_length:
-        return string
+def cutoff(text: str, line_length: int) -> str:
+    if len(text) <= line_length:
+        return text
 
     cut_idx = line_length - 4
-    for idx, val in enumerate(string):
+    for idx, val in enumerate(text):
         if val == " ":
             cut_idx = idx
         if idx == line_length - 3:
-            return string[:cut_idx] + "..."
+            return text[:cut_idx] + "..."
+
+
+def strike(text: str) -> str:
+    striked = ""
+    for c in text:
+        striked += c + '\u0336'
+    return striked

@@ -1,4 +1,5 @@
 import argparse
+import ctypes
 
 import schedule
 from schedule import NoSuchTopic, NoSuchGoal, DuplicateGoal
@@ -7,7 +8,6 @@ from work_timer import NoTimerActive, TimerAlreadyRunning
 LINE_LENGTH = 60
 
 
-# TODO: add .bat files, that call python.exe in workschedule env
 def handle(err: Exception) -> None:
     if type(err) is NoSuchTopic:
         print(f"Could not find topic '{err}'.")
@@ -24,6 +24,10 @@ def handle(err: Exception) -> None:
 
 
 def overview(args) -> None:
+    # Reference: https://docs.microsoft.com/en-us/windows/console/getstdhandle
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
     if args.topic is None:
         print(schedule.overview(args.detail))
     else:
