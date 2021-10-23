@@ -45,7 +45,6 @@ def remove_topic(args) -> None:
     schedule.remove_topic(args.topic)
 
 
-# TODO: output time when starting timer, output duraton when stopping timer
 def work(args) -> None:
     if args.stop and not (args.topic is None and args.hours is None):
         print("Invalid use of -s.")
@@ -55,12 +54,15 @@ def work(args) -> None:
         return
 
     if args.stop:
-        schedule.stop_working()
-        print("Stopping work-timer.")
+        topic = schedule.work_timer_.topic
+        hours = schedule.stop_working()
+        now = schedule.work_timer_.toc.strftime("%H:%M")
+        print(f"[{now}] Stopping work-timer. Worked {hours:.1} hours on {topic}.")
     else:
         if args.hours is None:
             schedule.start_working(args.topic)
-            print("Starting work-timer.")
+            now = schedule.work_timer_.tic.strftime("%H:%M")
+            print(f"[{now}] Starting work-timer.")
         else:
             schedule.work(args.topic, args.hours)
 

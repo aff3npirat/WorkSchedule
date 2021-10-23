@@ -28,8 +28,9 @@ class WorkTimer:
             raise NoTimerActive
         self.toc = datetime.now()
         self.topic = None
+        return self._hours()
 
-    def hours(self):
+    def _hours(self):
         diff = self.toc - self.tic
         seconds_in_hour = 60 * 60
         return diff.seconds / seconds_in_hour

@@ -133,11 +133,12 @@ def start_working(topic: str) -> None:
     work_timer_.start(topic)
 
 
-def stop_working() -> None:
+def stop_working() -> float:
     """Stops working timer and adds worked hours."""
     topic = work_timer_.topic
-    work_timer_.stop()
-    work(topic, round(work_timer_.hours, 1))
+    hours = round(work_timer_.stop(), 1)
+    work(topic, hours)
+    return hours
 
 
 def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
