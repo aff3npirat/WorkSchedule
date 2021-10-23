@@ -34,10 +34,3 @@ def cutoff(text: str, line_length: int) -> str:
             cut_idx = idx
         if idx == line_length - 3:
             return text[:cut_idx] + "..."
-
-
-def strike(text: str) -> str:
-    striked = ""
-    for c in text:
-        striked += c + '\u0336'
-    return striked

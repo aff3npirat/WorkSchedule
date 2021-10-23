@@ -9,6 +9,9 @@ import helpers
 import history
 import work_timer
 
+DONE_CLR = '\033[32m'
+ENDC = '\033[0m'
+
 # topic -> hours to work
 schedule: dict = {}
 # topic -> hours remaining
@@ -222,7 +225,6 @@ def set_as_active(name: str) -> None:
         file.write(name)
 
 
-# TODO: highligt done goals
 def overview(detailed: bool) -> str:
     """Get current period in printable format.
 
@@ -262,7 +264,7 @@ def overview(detailed: bool) -> str:
         notes_cell = ""
         for goal_ in goal.sort(goals[topic]):
             if goal_.done:
-                notes_cell += f"\033[32m{goal_}\033[0m\n"
+                notes_cell += f"{DONE_CLR}{goal_}{ENDC}\n"
             else:
                 notes_cell += f"{goal_}\n"
         notes_cell = notes_cell.rstrip("\n")
@@ -276,7 +278,6 @@ def overview(detailed: bool) -> str:
     return table.get_string()
 
 
-# TODO: highlight done goals
 def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
     """Get an overview of one topic.
 
@@ -312,15 +313,21 @@ def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
              f"({remaining[topic]:+g})"
     header += "\n" + len(header) * "-" + "\n"
 
-    goal_descriptions = ""
+    goal_overview = ""
     if detailed:
         for goal_ in goal.sort(goals[topic]):
-            goal_descriptions += goal_.name + "\n"
-            goal_descriptions += textwrap.indent(
+            goal_text = f"{goal_.name}\n"
+            goal_text += textwrap.indent(
                 helpers.split_lines(goal_.description, line_length - 4),
-                " " * 4) + "\n"
+                " " * 4)
+            if goal_.done:
+                goal_overview += f"{DONE_CLR}{goal_text}{ENDC}\n"
+            else:
+                goal_overview += f"{goal_text}\n"
     else:
         for goal_ in goal.sort(goals[topic]):
             line = goal_.name + " - " + goal_.description
-            goal_descriptions += helpers.cutoff(line, line_length) + "\n"
-    return header + goal_descriptions[:-1]
+            if goal_.done:
+                line = f"{DONE_CLR}{line}{ENDC}"
+            goal_overview += f"{helpers.cutoff(line, line_length)}\n"
+    return header + goal_overview[:-1]
