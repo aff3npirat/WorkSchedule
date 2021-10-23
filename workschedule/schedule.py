@@ -124,7 +124,7 @@ def reset(carry_on: list[str] = None) -> None:
 def work(topic: str, hours: float) -> None:
     if topic not in schedule:
         raise NoSuchTopic(topic)
-    history.add_entry(history.Entry(topic, hours))
+    history.add_entry(history.Entry(topic, round(hours, 2)))
 
 
 def start_working(topic: str) -> None:
@@ -136,7 +136,7 @@ def start_working(topic: str) -> None:
 def stop_working() -> float:
     """Stops working timer and adds worked hours."""
     topic = work_timer_.topic
-    hours = round(work_timer_.stop(), 1)
+    hours = work_timer_.stop()
     work(topic, hours)
     return hours
 
@@ -244,32 +244,32 @@ def overview(detailed: bool) -> str:
     """
     rows = [["Topic"], ["Worked"], ["toWork"], ["Notes"]]
     rows[0].append("Period")
-    rows[1].append(f"{history.get_hours():g}")
+    rows[1].append(f"{history.get_hours():.2g}")
     hours_towork = sum(schedule.values())
     hours_remaining = sum(remaining.values())
     if detailed:
-        rows[2].append(f"{hours_towork:g}({hours_remaining:+g})")
+        rows[2].append(f"{hours_towork:.2g}({hours_remaining:+.2g})")
     else:
-        rows[2].append(f"{hours_towork + hours_remaining:g}")
+        rows[2].append(f"{hours_towork + hours_remaining:.2g}")
     rows[3].append("")
 
     for topic in schedule:
         rows[0].append(topic)
-        rows[1].append(f"{history.get_hours(topic):g}")
+        rows[1].append(f"{history.get_hours(topic):.2g}")
 
         if detailed:
-            rows[2].append(f"{schedule[topic]:g}({remaining[topic]:+g})")
+            rows[2].append(f"{schedule[topic]:.2g}({remaining[topic]:+.2g})")
         else:
-            rows[2].append(f"{schedule[topic] + remaining[topic]:g}")
+            rows[2].append(f"{schedule[topic] + remaining[topic]:.2g}")
 
-        notes_cell = ""
+        goal_text = ""
         for goal_ in goal.sort(goals[topic]):
             if goal_.done:
-                notes_cell += f"{DONE_CLR}{goal_}{ENDC}\n"
+                goal_text += f"{DONE_CLR}{goal_}{ENDC}\n"
             else:
-                notes_cell += f"{goal_}\n"
-        notes_cell = notes_cell.rstrip("\n")
-        rows[3].append(notes_cell)
+                goal_text += f"{goal_}\n"
+        goal_text = goal_text.rstrip("\n")
+        rows[3].append(goal_text)
 
     table = prettytable.PrettyTable()
     table.align = "c"
@@ -310,8 +310,8 @@ def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
     if topic not in schedule:
         raise NoSuchTopic(topic)
 
-    header = f"{topic}: {history.get_hours(topic):g}/{schedule[topic]:g}" \
-             f"({remaining[topic]:+g})"
+    header = f"{topic}: {history.get_hours(topic):.2g}/{schedule[topic]:.2g}" \
+             f"({remaining[topic]:+.2g})"
     header += "\n" + len(header) * "-" + "\n"
 
     goal_overview = ""
