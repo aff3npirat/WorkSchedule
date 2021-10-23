@@ -1,6 +1,6 @@
 import ntpath
 import pickle
-import texttable
+import prettytable
 import textwrap
 from pathlib import Path
 
@@ -268,15 +268,12 @@ def overview(detailed: bool) -> str:
         notes_cell = notes_cell.rstrip("\n")
         rows[3].append(notes_cell)
 
-    table = texttable.Texttable()
-    table.set_header_align(["l" for _ in range(len(schedule) + 2)])
-    table.set_cols_align(["l"] + ["c" for _ in range(len(schedule) + 1)])
-    table.set_cols_dtype(["t" for _ in range(len(schedule) + 2)])
-    table.set_chars(['-', '|', '+', '='])
-    # Texttable.BORDER | Texttable.HEADER | Texttable.VLINES
-    table.set_deco(15)
-    table.add_rows(rows, header=False)
-    return table.draw()
+    table = prettytable.PrettyTable()
+    table.align = "c"
+    table.header = False
+    table.hrules = prettytable.ALL
+    table.add_rows(rows)
+    return table.get_string()
 
 
 # TODO: highlight done goals
