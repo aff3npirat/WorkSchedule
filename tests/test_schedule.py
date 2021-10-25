@@ -14,17 +14,6 @@ class TestSchedule(unittest.TestCase):
         schedule.from_file(self.in_file)
         schedule.load("test_schedule")
 
-    def test_remaining_hours_after_reset(self):
-        schedule.work("Lernen", 6.5)
-        schedule.work("Arbeiten", 14)
-        schedule.work("LustigeSachen", 17)
-        schedule.reset(["Arbeiten", "Lernen"])
-
-        actual = schedule.remaining
-        expected = {"Lernen": -1.5, "Arbeiten": 6.0, "LustigeSachen": 0.0}
-        self.assertEqual(actual, expected)
-        self.assertEqual(len(history.history), 2)
-
     def test_overview(self):
         schedule.work("Lernen", 6.5)
         schedule.work("Arbeiten", 14)
@@ -92,6 +81,17 @@ class TestSchedule(unittest.TestCase):
                           "Goal#-1")
 
     def test_reset(self):
+        # test remaining hours after reset
+        schedule.work("Lernen", 6.5)
+        schedule.work("Arbeiten", 14)
+        schedule.work("LustigeSachen", 17)
+        schedule.reset(["Arbeiten", "Lernen"])
+
+        actual = schedule.remaining
+        expected = {"Lernen": -1.5, "Arbeiten": 6.0, "LustigeSachen": 0.0}
+        self.assertEqual(actual, expected)
+        self.assertEqual(len(history.history), 2)
+
         # test goals after reset
         schedule.add_goal("Lernen", "Goal#1", "empty.", True)
         schedule.add_goal("Lernen", "Goal#2", "not so important!", False)

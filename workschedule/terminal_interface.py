@@ -76,6 +76,11 @@ def goal_cmd(args) -> None:
             print("Invalid use of -p.")
             return
         mark_done_cmd(args.topic)
+    elif args.cmd == "remove":
+        if args.periodic:
+            print("Invalid use of -p.")
+            return
+        remove_goal_cmd(args.topic)
     else:
         print(f"There is no command '{args.cmd}'.")
 
@@ -97,12 +102,15 @@ def mark_done_cmd(name: str):
     schedule.mark_done(name)
 
 
-# TODO: remove_goal_cmd
-def remove_goal_cmd(name: str) -> None: pass
+def remove_goal_cmd(name: str) -> None:
+    schedule.remove_goal(name)
 
 
 def reset(args):
-    schedule.reset(args.topics)
+    if args.goals:
+        schedule.reset(args.topics, schedule.goals.keys())
+    else:
+        schedule.reset(args.topics)
 
 
 def new_schedule(args):
@@ -117,6 +125,13 @@ def as_active(args):
 def get_active(args):
     name = schedule.get_active_schedule()
     print(f"Active schedule is: {name}")
+
+
+# TODO: when a name.schedule and name.history file exists (in schedules/),
+#       name should appear on list.
+def list_schedules(args):
+    """List all availables schedules."""
+    pass
 
 
 parser = argparse.ArgumentParser(description="main parser")
@@ -183,8 +198,8 @@ parser_reset.add_argument("-g",
 parser_reset.set_defaults(func=reset)
 
 parser_new = subparsers.add_parser("new", help="new help")
-parser_new.add_argument("-f", "--file", required=True, type=str, help="-f help")
 parser_new.add_argument("-n", "--name", required=True, type=str, help="-n help")
+parser_new.add_argument("-f", "--file", default=None, type=str, help="-f help")
 parser_new.set_defaults(func=new_schedule)
 
 parser_load = subparsers.add_parser("load", help="load help")

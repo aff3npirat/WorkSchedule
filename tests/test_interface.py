@@ -8,7 +8,6 @@ import context
 import schedule
 import terminal_interface as interface
 from schedule import NoSuchTopic, NoSuchGoal, DuplicateGoal
-from work_timer import NoTimerActive, TimerAlreadyRunning
 
 
 @contextmanager

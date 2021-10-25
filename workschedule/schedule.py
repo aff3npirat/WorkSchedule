@@ -36,8 +36,9 @@ class DuplicateGoal(Exception):
 def add_topic(new_topic: str, hours: float) -> None:
     """Adds a new topic to current schedule"""
     schedule[new_topic] = hours
-    remaining[new_topic] = 0.0
-    goals[new_topic] = []
+    if new_topic not in remaining:
+        remaining[new_topic] = 0.0
+        goals[new_topic] = []
 
 
 def remove_topic(topic: str) -> None:
@@ -62,21 +63,24 @@ def from_file(fpath: str, name: str = None) -> None:
     name
         Name assigned to schedule. If None file name will be used.
     """
-    fpath = Path(fpath)
-    if not fpath.is_file():
-        raise FileNotFoundError(f"could not find file {fpath.absolute()}")
+    if fpath is not None:
+        fpath = Path(fpath)
+        if not fpath.is_file():
+            raise FileNotFoundError(f"could not find file {fpath.absolute()}")
+        with open(fpath, "rt") as file:
+            lines = file.readlines()
+    else:
+        lines = []
 
     schedule_ = {}
     remaining_ = {}
     goals_ = {}
-    with open(fpath, "r") as file:
-        lines = file.readlines()
-        for line in lines:
-            topic, hours = line.split(": ")
-            hours = hours.rstrip("\n")
-            schedule_[topic] = float(hours)
-            remaining_[topic] = 0.0
-            goals_[topic] = []
+    for line in lines:
+        topic, hours = line.split(": ")
+        hours = hours.rstrip("\n")
+        schedule_[topic] = float(hours)
+        remaining_[topic] = 0.0
+        goals_[topic] = []
 
     if name is None:
         name = ntpath.basename(fpath)
@@ -168,6 +172,14 @@ def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
 
     new_goal = goal.Goal(name, description, periodic)
     goals[topic].append(new_goal)
+
+
+def remove_goal(name: str):
+    for topic in goals:
+        if name in goals[topic]:
+            goals[topic].remove(name)
+            return
+    raise NoSuchGoal(name)
 
 
 def mark_done(goal_name: str) -> None:
