@@ -9,7 +9,8 @@ import helpers
 import history
 import work_timer
 
-DONE_CLR = '\033[32m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
 ENDC = '\033[0m'
 
 # topic -> hours to work
@@ -284,7 +285,9 @@ def overview(detailed: bool) -> str:
         goal_text = ""
         for goal_ in goal.sort(goals[topic]):
             if goal_.done:
-                goal_text += f"{DONE_CLR}{goal_}{ENDC}\n"
+                goal_text += f"{GREEN}{goal_}{ENDC}\n"
+            elif goal_.periodic:
+                goal_text += f"{YELLOW}{goal_}{ENDC}\n"
             else:
                 goal_text += f"{goal_}\n"
         goal_text = goal_text.rstrip("\n")
@@ -341,13 +344,17 @@ def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
                 helpers.split_lines(goal_.description, line_length - 4),
                 " " * 4)
             if goal_.done:
-                goal_overview += f"{DONE_CLR}{goal_text}{ENDC}\n"
+                goal_overview += f"{GREEN}{goal_text}{ENDC}\n"
+            elif goal_.periodic:
+                goal_overview += f"{YELLOW}{goal_text}{ENDC}\n"
             else:
                 goal_overview += f"{goal_text}\n"
     else:
         for goal_ in goal.sort(goals[topic]):
             line = goal_.name + " - " + goal_.description
             if goal_.done:
-                line = f"{DONE_CLR}{line}{ENDC}"
+                line = f"{GREEN}{line}{ENDC}"
+            elif goal_.periodic:
+                goal_overview += f"{YELLOW}{line}{ENDC}\n"
             goal_overview += f"{helpers.cutoff(line, line_length)}\n"
     return header + goal_overview[:-1]

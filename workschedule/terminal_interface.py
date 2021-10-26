@@ -45,6 +45,9 @@ def remove_topic(args) -> None:
     schedule.remove_topic(args.topic)
 
 
+# TODO work -> stop timer
+#      work -s -> stop timer without adding hours
+# TODO print current timer (start date, topic) on TimerAlreadyRunning exception
 def work(args) -> None:
     if args.stop and not (args.topic is None and args.hours is None):
         print("Invalid use of -s.")
@@ -85,6 +88,9 @@ def goal_cmd(args) -> None:
         print(f"There is no command '{args.cmd}'.")
 
 
+# TODO goal names must be unique in on topic
+# TODO add goals to period, period goals are only removed if done and reset or
+#      by user
 def add_goal_cmd(topic: str, periodic: bool) -> None:
     name = input("Enter name: ").rstrip()
     if name == "":
