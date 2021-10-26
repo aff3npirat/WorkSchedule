@@ -2,6 +2,7 @@ import unittest
 import sys
 from contextlib import contextmanager
 import io
+from datetime import datetime
 from unittest import mock
 
 import context
@@ -48,10 +49,25 @@ class TestTerminalInterface(unittest.TestCase):
             self.assertEqual("Invalid use of -s.",
                              out.getvalue().splitlines()[1])
 
+            args = parser_work.parse_args("Lernen".split())
+            interface.work(args)
+            now = datetime.now().strftime("%H:%M")
+            self.assertEqual(f"[{now}] Starting work-timer.",
+                             out.getvalue().splitlines()[2])
+
             args = parser_work.parse_args([])
             interface.work(args)
-            self.assertEqual("At least one argument is required.",
-                             out.getvalue().splitlines()[2])
+            self.assertEqual(f"[{now}] Stoped work-timer. "
+                             f"Worked 0.0 hours on Lernen.",
+                             out.getvalue().splitlines()[3])
+
+            schedule.work_timer_.topic = "Lernen"
+            schedule.work_timer_.tic = datetime.now()
+            args = parser_work.parse_args("-s".split())
+            interface.work(args)
+            now = datetime.now().strftime("%H:%M")
+            self.assertEqual(f"[{now}] Stoped work-timer.",
+                             out.getvalue().splitlines()[4])
 
     def test_add_topic(self):
         parser_add_topic = interface.parser_add_topic

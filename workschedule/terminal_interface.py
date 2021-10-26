@@ -49,25 +49,25 @@ def remove_topic(args) -> None:
 #      work -s -> stop timer without adding hours
 # TODO print current timer (start date, topic) on TimerAlreadyRunning exception
 def work(args) -> None:
-    if args.stop and not (args.topic is None and args.hours is None):
+    if args.stop and not (args.topic is args.hours is None):
         print("Invalid use of -s.")
-        return
-    if not any([args.stop, args.topic, args.hours]):
-        print("At least one argument is required.")
         return
 
     if args.stop:
-        topic = schedule.work_timer_.topic
-        hours = schedule.stop_working()
+        schedule.work_timer_.stop()
         now = schedule.work_timer_.toc.strftime("%H:%M")
-        print(f"[{now}] Stopping work-timer. Worked {hours:.1} hours on {topic}.")
+        print(f"[{now}] Stoped work-timer.")
+    elif args.topic is args.hours is None:
+        topic = schedule.work_timer_.topic
+        hours = schedule.work_timer_.stop()
+        now = schedule.work_timer_.toc.strftime("%H:%M")
+        print(f"[{now}] Stoped work-timer. Worked {hours:.1f} hours on {topic}.")
+    elif args.hours is None:
+        schedule.start_working(args.topic)
+        now = schedule.work_timer_.tic.strftime("%H:%M")
+        print(f"[{now}] Starting work-timer.")
     else:
-        if args.hours is None:
-            schedule.start_working(args.topic)
-            now = schedule.work_timer_.tic.strftime("%H:%M")
-            print(f"[{now}] Starting work-timer.")
-        else:
-            schedule.work(args.topic, args.hours)
+        schedule.work(args.topic, args.hours)
 
 
 def goal_cmd(args) -> None:
