@@ -61,6 +61,7 @@ def work(args) -> None:
         topic = schedule.work_timer_.topic
         hours = schedule.work_timer_.stop()
         now = schedule.work_timer_.toc.strftime("%H:%M")
+        schedule.work(topic, hours)
         print(f"[{now}] Stoped work-timer. Worked {hours:.1f} hours on {topic}.")
     elif args.hours is None:
         schedule.start_working(args.topic)
