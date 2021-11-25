@@ -45,8 +45,6 @@ def remove_topic(args) -> None:
     schedule.remove_topic(args.topic)
 
 
-# TODO work -> stop timer
-#      work -s -> stop timer without adding hours
 # TODO print current timer (start date, topic) on TimerAlreadyRunning exception
 def work(args) -> None:
     if args.stop and not (args.topic is args.hours is None):

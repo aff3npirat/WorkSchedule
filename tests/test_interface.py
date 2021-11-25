@@ -120,31 +120,34 @@ class TestTerminalInterface(unittest.TestCase):
 
         with captured_output() as (out, err):
             # test invalid command
-            args = parser_goal.parse_args("remove Lernen".split())
+            args = parser_goal.parse_args("move Lernen Goal".split())
             interface.goal_cmd(args)
-            self.assertEqual("There is no command 'remove'.",
+            self.assertEqual("There is no command 'move'.",
                              out.getvalue().splitlines()[0])
 
         # test goal add
         with captured_output() as (out, err):
-            mocked_input.side_effect = ["", "an invalid goal name."]
-            args = parser_goal.parse_args("add Lernen".split())
+            mocked_input.side_effect = ["an invalid goal name."]
+            args = parser_goal.parse_args("add Lernen ''".split())
             interface.goal_cmd(args)
             self.assertEqual("'' is not a valid name.",
                              out.getvalue().splitlines()[0])
 
-        mocked_input.side_effect = ["Goal#1", "a valid goal."]
-        args = parser_goal.parse_args("add Schwimmen".split())
+        mocked_input.side_effect = ["a valid goal."]
+        args = parser_goal.parse_args("add Schwimmen Goal#1".split())
         self.assertRaises(NoSuchTopic, interface.goal_cmd, args)
 
-        args = parser_goal.parse_args("add Lernen".split())
-        mocked_input.side_effect = ["Goal#1", "a valid goal."]
+        args = parser_goal.parse_args("add Lernen Goal#1".split())
+        mocked_input.side_effect = ["a valid goal."]
         interface.goal_cmd(args)
-        mocked_input.side_effect = ["Goal#1", "a valid goal."]
+        mocked_input.side_effect = ["a valid goal."]
         self.assertRaises(DuplicateGoal, interface.goal_cmd, args)
 
         # test done
-        args = parser_goal.parse_args("done Goal#2".split())
+        args = parser_goal.parse_args("done Schwimmen Goal#1".split())
+        self.assertRaises(NoSuchTopic, interface.goal_cmd, args)
+
+        args = parser_goal.parse_args("done Lernen Goal#2".split())
         self.assertRaises(NoSuchGoal, interface.goal_cmd, args)
 
         with captured_output() as (out, err):
@@ -157,6 +160,10 @@ class TestTerminalInterface(unittest.TestCase):
             interface.goal_cmd(args)
             self.assertEqual("Invalid use of -p.",
                              out.getvalue().splitlines()[1])
+
+        # test remove
+        args = parser_goal.parse_args("remove Schwimmen".split())
+        self.assertRaises(NoSuchGoal, interface.goal_cmd, args)
 
 
 if __name__ == '__main__':
