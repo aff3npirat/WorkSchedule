@@ -1,0 +1,50 @@
+#01: Overview cmd
+    Commands should be shorter. For example 'schedule overview Topic' should be changed to
+    'schedule Topic'. Overview of single topic should always expand goal descriptions. Carry_on should always
+    be displayed when its unequal 0, therefore -d switch can be removed completely. Hours should be displayed
+    HH:MM.
+
+#02: Period goals
+    There should be an option to add goals to no specific topic. These goals are listed
+    under period in overview. There should also be an option to get detailed overview of period.
+
+#03: Goal names
+    The goal names must only be unique in topic. So there can exist to goals (in different topics) with same name.
+
+#04: Schedules
+    There should be a functionality to create schedules. These schedules consist of one or multiple periods (where period length [number of days] is variable).
+    On each day one can add a topc for a specific time.
+
+#05: remove done goals
+    When a goal is done, remove goal from overview and free name.
+
+#06: timed goals
+    There should be an option to add a deadline (I think day is sufficient) to a goal.
+    When the specified date is reached the goal will be removed automatically.
+
+#07: edit goals
+    There should be an option to edit goals. The title, description should be editable.
+    Also whether the goal is periodical or timed.
+
+#08: Automatic reset
+    Each schedule has customizable period length (e.g. number of days). Periods are reset automatically.
+
+#09: better history
+    History should contain:
+      - Date + time when worked on a topic for x hours (currently only Date is stored, so working on a topic twice on single day is listed as on entry)
+      - Date + time when a goal was marked as done/failed
+      - resets
+      - Date + time when a timed goal expires without being marked done
+
+#10: work timer
+    Hours should be displayed HH:MM.
+
+#11: plotting
+    There should be an option to display plots for all periods or single.
+      - times worked (single plot/one plot for each topic)
+      - goals marked as done
+      - goals marked as failed
+      - unworked hours, to_work - worked (single plot/one plot for each topic)
+
+#12: undone goal
+    There should be a command to mark a goal as failed.
