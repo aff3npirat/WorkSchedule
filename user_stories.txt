@@ -1,8 +1,5 @@
 #01: Overview cmd
-    Commands should be shorter. For example 'schedule overview Topic' should be changed to
-    'schedule Topic'. Overview of single topic should always expand goal descriptions. Carry_on should always
-    be displayed when its unequal 0, therefore -d switch can be removed completely. Hours should be displayed
-    HH:MM.
+    Carry_on should always be displayed when its unequal 0. Hours should be displayed HH:MM.
 
 #02: Period goals
     There should be an option to add goals to no specific topic. These goals are listed
