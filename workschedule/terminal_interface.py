@@ -1,52 +1,30 @@
 import argparse
 import ctypes
+import sys
 
 import schedule
-from schedule import InvalidNameException, DuplicateNameException
+from schedule import InvalidNameException, DuplicateNameException, NoScheduleException
 from work_timer import TimerRunningException
 
 LINE_LENGTH = 60
 
 
-def handle(err: Exception) -> None:
-    if type(err) in [InvalidNameException, DuplicateNameException, TimerRunningException]:
+def handle_exceptions(err: Exception) -> None:
+    if type(err) in [InvalidNameException, DuplicateNameException, TimerRunningException, NoScheduleException]:
         print(str(err))
     else:
         raise err
 
-
-def overview(args) -> None:
-    # Reference: https://docs.microsoft.com/en-us/windows/console/getstdhandle
-    kernel32 = ctypes.windll.kernel32
-    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-
-    if args.topic is None:
-        print(schedule.overview(args.detail))
-    else:
-        print(schedule.topic_overview(args.topic, args.detail, LINE_LENGTH))
+def add_topic_handler(args) -> None:
+    schedule.add_topic(args.topic, args.hours)
 
 
-def add_topic(args) -> None:
-    if args.topic == "''":
-        print("'' is not a valid name.")
-    else:
-        schedule.add_topic(args.topic, args.hours)
-
-
-def remove_topic(args) -> None:
+def remove_topic_handler(args) -> None:
     schedule.remove_topic(args.topic)
 
 
-def work(args) -> None:
-    if args.stop and not (args.topic is args.hours is None):
-        print("Invalid use of -s.")
-        return
-
-    if args.stop:
-        schedule.work_timer_.stop()
-        now = schedule.work_timer_.toc.strftime("%H:%M")
-        print(f"[{now}] Stoped work-timer.")
-    elif args.topic is args.hours is None:
+def work_parser_handler(args) -> None:
+    if args.topic is args.hours is None:
         topic = schedule.work_timer_.topic
         hours = schedule.work_timer_.stop()
         now = schedule.work_timer_.toc.strftime("%H:%M")
@@ -55,153 +33,131 @@ def work(args) -> None:
     elif args.hours is None:
         schedule.start_working(args.topic)
         now = schedule.work_timer_.tic.strftime("%H:%M")
-        print(f"[{now}] Starting work-timer.")
+        print(f"[{now}] Started work-timer.")
     else:
         schedule.work(args.topic, args.hours)
 
 
-def goal_cmd(args) -> None:
-    """Selects function to call based on args.cmd."""
-    if args.cmd == "add":
-        add_goal_cmd(args.topic, args.periodic)
-    elif args.cmd == "done":
-        if args.periodic:
-            print("Invalid use of -p.")
-            return
-        mark_done_cmd(args.topic)
-    elif args.cmd == "remove":
-        if args.periodic:
-            print("Invalid use of -p.")
-            return
-        remove_goal_cmd(args.topic)
-    else:
-        print(f"There is no command '{args.cmd}'.")
-
-
-def add_goal_cmd(topic: str, periodic: bool) -> None:
-    name = input("Enter name: ").rstrip()
-    if name == "":
-        print("'' is not a valid name.")
-        return
-    if len(name) > LINE_LENGTH:
+def goal_add_handler(args) -> None:
+    if len(args.name) > LINE_LENGTH:
         print(f"Name can not be longer than {LINE_LENGTH} chars.")
         return
+
     description = input("Enter description: ").rstrip()
-
-    schedule.add_goal(topic, name, description, periodic)
-
-
-def mark_done_cmd(name: str):
-    schedule.mark_done(name)
+    schedule.add_goal(args.topic, args.name, description, args.periodic)
 
 
-def remove_goal_cmd(name: str) -> None:
-    schedule.remove_goal(name)
+def done_goal_handler(args):
+    schedule.mark_done(args.topic, args.name)
 
 
-def reset(args):
-    if args.goals:
-        schedule.reset(args.topics, schedule.goals.keys())
-    else:
+def remove_goal_handler(args) -> None:
+    schedule.remove_goal(args.topic, args.name)
+
+
+def reset_parser_handler(args):
+    if args.reset_goals:
         schedule.reset(args.topics)
+    else:
+        schedule.reset(args.topics, schedule.goals.keys())
 
 
-def new_schedule(args):
-    schedule.from_file(args.file, args.name)
+def new_schedule(name: str):
+    schedule.from_file(name)
 
 
-def as_active(args):
-    schedule.set_as_active(args.name)
-    print(f"Set {args.name} as active.")
+def set_active(name: str):
+    schedule.set_as_active(name)
+    print(f"Set {name} as active.")
 
 
-def get_active(args):
-    name = schedule.get_active_schedule()
-    print(f"Active schedule is: {name}")
+def main_parser_handler(args):
+    nargs = len(args.cmd_args)
+    if nargs == 0:
+        print(f"Active schedule is '{schedule.get_active_schedule()}'")
+    elif nargs == 1 and args.cmd_args[0] in ["overview", "Period", "view"]:
+        # enable virtual terminal sequences
+        # Reference: https://docs.microsoft.com/en-us/windows/console/getstdhandle
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+        print(schedule.overview())
+    elif nargs == 1 and schedule._valid_topic_name(args.cmd_args[0]):
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+        print(schedule.topic_overview(args.cmd_args[0], LINE_LENGTH))
+    else:
+        args = main_parser.parse_args(args.cmd_args)
+        args.func(args)
 
 
-parser = argparse.ArgumentParser(description="main parser")
-parser.set_defaults(func=get_active)
-subparsers = parser.add_subparsers(description="subparsers")
+overview_parser = argparse.ArgumentParser(description="main parser")
+overview_parser.add_argument("cmd_args", nargs="*", default=[])
+overview_parser.set_defaults(func=main_parser_handler)
 
-parser_overview = subparsers.add_parser("overview", help="overview help")
-parser_overview.add_argument("topic",
-                             nargs="?",
-                             default=None,
-                             type=str,
-                             help="topic help")
-parser_overview.add_argument("-d",
-                             "--detail",
-                             default=False,
-                             action="store_true",
-                             help="d help")
-parser_overview.set_defaults(func=overview)
+main_parser = argparse.ArgumentParser(description="subparsers")
+subparsers = main_parser.add_subparsers(dest="parser_name")
 
-parser_add_topic = subparsers.add_parser("add", help="add_topic help")
-parser_add_topic.add_argument("topic", type=str, help="topic help")
-parser_add_topic.add_argument("hours", type=float, help="hours help")
-parser_add_topic.set_defaults(func=add_topic)
+work_parser = subparsers.add_parser("work")
+work_parser.add_argument("topic", type=str, default=None, nargs="?")
+work_parser.add_argument("hours", type=float, default=None, nargs="?")
+work_parser.set_defaults(func=work_parser_handler)
 
-parser_remove_topic = subparsers.add_parser("remove", help="remove_topic help")
-parser_remove_topic.add_argument("topic", type=str, help="topic help")
-parser_remove_topic.set_defaults(func=remove_topic)
+add_topic_parser = subparsers.add_parser("add")
+add_topic_parser.add_argument("topic", type=str)
+add_topic_parser.add_argument("hours", type=float)
+add_topic_parser.set_defaults(func=add_topic_handler)
 
-parser_work = subparsers.add_parser("work", help="work help")
-parser_work.add_argument("topic",
-                         type=str,
-                         nargs="?",
-                         default=None,
-                         help="topic help")
-parser_work.add_argument("hours",
-                         type=float,
-                         nargs="?",
-                         default=None,
-                         help="hours help")
-parser_work.add_argument("-s",
-                         "--stop",
-                         default=False,
-                         action="store_true",
-                         help="-s help")
-parser_work.set_defaults(func=work)
+remove_topic_parser = subparsers.add_parser("remove")
+remove_topic_parser.add_argument("topic", type=str)
+remove_topic_parser.set_defaults(func=remove_topic_handler)
 
-parser_goal = subparsers.add_parser("goal", help="goal help")
-parser_goal.add_argument("cmd", type=str, help="cmd help")
-parser_goal.add_argument("topic", type=str, help="topic help")
-parser_goal.add_argument("-p",
-                         "--periodic",
-                         default=False,
-                         action="store_true",
-                         help="-p help")
-parser_goal.set_defaults(func=goal_cmd)
+reset_parser = subparsers.add_parser("reset")
+reset_parser.add_argument("topics", type=str, nargs="*")
+reset_parser.add_argument("-g", "--reset_goals", default=False, action="store_true")
+reset_parser.set_defaults(func=reset_parser_handler)
 
-parser_reset = subparsers.add_parser("reset", help="reset help")
-parser_reset.add_argument("topics", nargs="*", type=str, help="topics help")
-parser_reset.add_argument("-g",
-                          "--goals",
-                          default=False,
-                          action="store_true",
-                          help="-g help")
-parser_reset.set_defaults(func=reset)
+load_parser = subparsers.add_parser("set")
+load_parser.add_argument("name", type=str)
 
-parser_new = subparsers.add_parser("new", help="new help")
-parser_new.add_argument("-n", "--name", required=True, type=str, help="-n help")
-parser_new.add_argument("-f", "--file", default=None, type=str, help="-f help")
-parser_new.set_defaults(func=new_schedule)
+new_schedule_parser = subparsers.add_parser("new")
+new_schedule_parser.add_argument("name", type=str)
 
-parser_load = subparsers.add_parser("load", help="load help")
-parser_load.add_argument("name", type=str, help="name help")
-parser_load.set_defaults(func=as_active)
+goal_parser = subparsers.add_parser("goal")
+goal_subparsers = goal_parser.add_subparsers()
+
+goal_add_parser = goal_subparsers.add_parser("add")
+goal_add_parser.add_argument("topic", type=str)
+goal_add_parser.add_argument("name", type=str)
+goal_add_parser.add_argument("-p", "--periodic", default=False, action="store_true")
+goal_add_parser.set_defaults(func=goal_add_handler)
+
+goal_remove_parser = goal_subparsers.add_parser("remove")
+goal_remove_parser.add_argument("topic", type=str)
+goal_remove_parser.add_argument("name", type=str)
+goal_remove_parser.set_defaults(func=remove_goal_handler)
+
+goal_done_parser = goal_subparsers.add_parser("done")
+goal_done_parser.add_argument("topic", type=str)
+goal_done_parser.add_argument("name", type=str)
+goal_done_parser.set_defaults(func=done_goal_handler)
 
 
 def main():
-    args = parser.parse_args()
     try:
-        name = schedule.get_active_schedule()
-        schedule.load(name)
-        args.func(args)
-        schedule.save(name)
+        nargs = len(sys.argv)
+        if nargs == 3 and sys.argv[1] == "set":
+            set_active(sys.argv[2])
+        elif nargs == 3 and sys.argv[1] == "new":
+            schedule.new_schedule(sys.argv[2])
+            set_active(sys.argv[2])
+        else:
+            args = overview_parser.parse_args()
+            name = schedule.get_active_schedule()
+            schedule.load(name)
+            args.func(args)
+            schedule.save(name)
     except Exception as err:
-        handle(err)
+        handle_exceptions(err)
 
 
 if __name__ == '__main__':

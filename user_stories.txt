@@ -8,7 +8,7 @@
     There should be an option to add goals to no specific topic. These goals are listed
     under period in overview. There should also be an option to get detailed overview of period.
 
-#03: Goal names
+#03: Goal names [done]
     The goal names must only be unique in topic. So there can exist to goals (in different topics) with same name.
 
 #04: Schedules
@@ -34,7 +34,6 @@
       - Date + time when worked on a topic for x hours (currently only Date is stored, so working on a topic twice on single day is listed as on entry)
       - Date + time when a goal was marked as done/failed
       - resets
-      - Date + time when a timed goal expires without being marked done
 
 #10: work timer
     Hours should be displayed HH:MM.
