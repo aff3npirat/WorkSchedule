@@ -22,24 +22,32 @@ goals = {}
 work_timer_ = work_timer.WorkTimer()
 
 
-class NoSuchTopic(Exception):
-    pass
+class InvalidNameException(Exception): pass
+class DuplicateNameException(Exception): pass
 
 
-class NoSuchGoal(Exception):
-    pass
+def _valid_topic_name(name: str) -> bool:
+    if name in ["", "add", "work", "overview", "Period", "goal", "load", "list", "new"]:
+        return False
+    return True
 
-
-class DuplicateGoal(Exception):
-    pass
+def _valid_goal_name(name: str) -> bool:
+    if name in [""]:
+        return False
+    return True
 
 
 def add_topic(new_topic: str, hours: float) -> None:
     """Adds a new topic to current schedule"""
+    if not _valid_topic_name(new_topic):
+        raise InvalidNameException(f"'{new_topic}' is not a valid topic name!")
+
+    if new_topic in schedule:
+        raise DuplicateNameException(f"Topic '{new_topic}' already exists in schedule!")
+
     schedule[new_topic] = hours
-    if new_topic not in remaining:
-        remaining[new_topic] = 0.0
-        goals[new_topic] = []
+    remaining[new_topic] = 0.0
+    goals[new_topic] = []
 
 
 def remove_topic(topic: str) -> None:
@@ -49,12 +57,13 @@ def remove_topic(topic: str) -> None:
         del remaining[topic]
         del goals[topic]
     else:
-        raise NoSuchTopic(topic)
+        raise InvalidNameException(f"Could not find '{topic}' in schedule!")
 
 
 def from_file(fpath: str, name: str = None) -> None:
     """Builds a new schedule.
 
+    Creates a .schedule and .history file containing the schedule.
     Schedule must be loaded before used.
 
     Parameters
@@ -135,13 +144,13 @@ def reset(carry_hours: list[str] = None, carry_goals: list[str] = None) -> None:
 
 def work(topic: str, hours: float) -> None:
     if topic not in schedule:
-        raise NoSuchTopic(topic)
+        raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
     history.add_entry(history.Entry(topic, round(hours, 2)))
 
 
 def start_working(topic: str) -> None:
     if topic not in schedule:
-        raise NoSuchTopic(topic)
+        raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
     work_timer_.start(topic)
 
 
@@ -162,36 +171,31 @@ def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
     name
         Used to adress goal, e.g. mark as done.
     description
-        The goal will be readded every period.
+        A description of the goal
     periodic
         Goal is added again on reset.
     """
     if topic not in schedule:
-        raise NoSuchTopic(topic)
-    if name in [goal_ for goal_list in goals.values() for goal_ in goal_list]:
-        raise DuplicateGoal(name)
+        raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
+    if name in goals[topic]:
+        raise DuplicateNameException(f"Goal names must be unique!")
+    if not _valid_goal_name(name):
+        raise InvalidNameException(f"'{name}' is not a valid goal name!")
 
     new_goal = goal.Goal(name, description, periodic)
     goals[topic].append(new_goal)
 
 
-def remove_goal(name: str):
-    for topic in goals:
-        if name in goals[topic]:
-            goals[topic].remove(name)
-            return
-    raise NoSuchGoal(name)
+def remove_goal(topic: str, name: str) -> None:
+    if name not in goals[topic]:
+        raise InvalidNameException(f"Could not find goal '{name}'!")
+    goals[topic].remove(name)
 
 
-def mark_done(goal_name: str) -> None:
+def mark_done(topic: str, goal_name: str) -> None:
     """Mark a goal as done."""
-    topic = None
-    for topic_ in goals:
-        if goal_name in goals[topic_]:
-            topic = topic_
-            break
-    if topic is None:
-        raise NoSuchGoal(goal_name)
+    if goal_name not in goals[topic]:
+        raise InvalidNameException(f"Could not find goal '{goal_name}'!")
 
     idx = goals[topic].index(goal_name)
     goals[topic][idx].done = True
@@ -330,7 +334,7 @@ def topic_overview(topic: str, detailed: bool, line_length: int) -> str:
     Goal#2 - This is my second goal. I would rather never...
     """
     if topic not in schedule:
-        raise NoSuchTopic(topic)
+        raise InvalidNameException(f"Could not find topic '{topic}'!")
 
     header = f"{topic}: {history.get_hours(topic):.2g}/{schedule[topic]:.2g}" \
              f"({remaining[topic]:+.2g})"

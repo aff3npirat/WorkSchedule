@@ -2,23 +2,15 @@ import argparse
 import ctypes
 
 import schedule
-from schedule import NoSuchTopic, NoSuchGoal, DuplicateGoal
-from work_timer import NoTimerActive, TimerAlreadyRunning
+from schedule import InvalidNameException, DuplicateNameException
+from work_timer import TimerRunningException
 
 LINE_LENGTH = 60
 
 
 def handle(err: Exception) -> None:
-    if type(err) is NoSuchTopic:
-        print(f"Could not find topic '{err}'.")
-    elif type(err) is NoSuchGoal:
-        print(f"Could not find goal '{err}'.")
-    elif type(err) is DuplicateGoal:
-        print(f"Goal name must be unique.")
-    elif type(err) is NoTimerActive:
-        print("Can not stop work-timer: no timer active.")
-    elif type(err) is TimerAlreadyRunning:
-        print("Can not start work-timer: timer is already active.")
+    if type(err) in [InvalidNameException, DuplicateNameException, TimerRunningException]:
+        print(str(err))
     else:
         raise err
 
@@ -45,7 +37,6 @@ def remove_topic(args) -> None:
     schedule.remove_topic(args.topic)
 
 
-# TODO print current timer (start date, topic) on TimerAlreadyRunning exception
 def work(args) -> None:
     if args.stop and not (args.topic is args.hours is None):
         print("Invalid use of -s.")
@@ -87,9 +78,6 @@ def goal_cmd(args) -> None:
         print(f"There is no command '{args.cmd}'.")
 
 
-# TODO goal names must be unique in on topic
-# TODO add goals to period, period goals are only removed if done and reset or
-#      by user
 def add_goal_cmd(topic: str, periodic: bool) -> None:
     name = input("Enter name: ").rstrip()
     if name == "":
@@ -130,13 +118,6 @@ def as_active(args):
 def get_active(args):
     name = schedule.get_active_schedule()
     print(f"Active schedule is: {name}")
-
-
-# TODO: when a name.schedule and name.history file exists (in schedules/),
-#       name should appear on list.
-def list_schedules(args):
-    """List all availables schedules."""
-    pass
 
 
 parser = argparse.ArgumentParser(description="main parser")

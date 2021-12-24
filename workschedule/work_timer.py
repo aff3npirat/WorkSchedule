@@ -1,12 +1,7 @@
 from datetime import datetime
 
 
-class TimerAlreadyRunning(Exception):
-    pass
-
-
-class NoTimerActive(Exception):
-    pass
+class TimerRunningException(Exception): pass
 
 
 class WorkTimer:
@@ -19,13 +14,13 @@ class WorkTimer:
 
     def start(self, topic):
         if self.topic is not None:
-            raise TimerAlreadyRunning(self.topic)
+            raise TimerRunningException(f"There is already a timer running on topic '{self.topic}'!")
         self.topic = topic
         self.tic = datetime.now()
 
     def stop(self):
         if self.topic is None:
-            raise NoTimerActive
+            raise TimerRunningException(f"There is no active timer!")
         self.toc = datetime.now()
         self.topic = None
         return self._hours()
