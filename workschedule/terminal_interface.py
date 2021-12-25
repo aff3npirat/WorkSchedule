@@ -25,14 +25,14 @@ def remove_topic_handler(args) -> None:
 
 def work_parser_handler(args) -> None:
     if args.topic is args.hours is None:
-        topic = schedule.work_timer_.topic
-        hours = schedule.work_timer_.stop()
-        now = schedule.work_timer_.toc.strftime("%H:%M")
+        topic = schedule.curr_timer.topic
+        hours = schedule.curr_timer.stop()
+        now = schedule.curr_timer.toc.strftime("%H:%M")
         schedule.work(topic, hours)
         print(f"[{now}] Stoped work-timer. Worked {hours:.1f} hours on {topic}.")
     elif args.hours is None:
         schedule.start_working(args.topic)
-        now = schedule.work_timer_.tic.strftime("%H:%M")
+        now = schedule.curr_timer.tic.strftime("%H:%M")
         print(f"[{now}] Started work-timer.")
     else:
         schedule.work(args.topic, args.hours)
