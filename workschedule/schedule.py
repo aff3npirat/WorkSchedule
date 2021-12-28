@@ -1,23 +1,22 @@
 import pickle
 import prettytable
 import textwrap
+import os
 
 import goal
 import helpers
 import history
-import work_timer
+import timer
 
 GREEN = '\033[32m'
 YELLOW = '\033[33m'
 ENDC = '\033[0m'
 
-# topic -> hours to work
-curr_schedule: dict = {}
-# topic -> hours remaining
-curr_remaining: dict = {}
-# topic -> Goal
-curr_goals = {}
-curr_timer = work_timer.WorkTimer()
+_to_work: dict
+_remaining: dict
+_goals: dict
+_history: list[history.Period]
+_work_timer: timer.Timer
 
 
 class InvalidNameException(Exception): pass
@@ -46,20 +45,20 @@ def add_topic(new_topic: str, hours: float) -> None:
     if not _valid_topic_name(new_topic):
         raise InvalidNameException(f"'{new_topic}' is not a valid topic name!")
 
-    if new_topic in curr_schedule:
+    if new_topic in _to_work:
         raise DuplicateNameException(f"Topic '{new_topic}' already exists in schedule!")
 
-    curr_schedule[new_topic] = hours
-    curr_remaining[new_topic] = 0.0
-    curr_goals[new_topic] = []
+    _to_work[new_topic] = hours
+    _remaining[new_topic] = 0.0
+    _goals[new_topic] = []
 
 
 def remove_topic(topic: str) -> None:
     """Remove a topic from current schedule."""
-    if topic in curr_schedule:
-        del curr_schedule[topic]
-        del curr_remaining[topic]
-        del curr_goals[topic]
+    if topic in _to_work:
+        del _to_work[topic]
+        del _remaining[topic]
+        del _goals[topic]
     else:
         raise InvalidNameException(f"Could not find '{topic}' in schedule!")
 
@@ -67,65 +66,50 @@ def remove_topic(topic: str) -> None:
 def new_schedule(name: str) -> None:
     if not _valid_schedule_name(name):
         raise InvalidNameException(f"'{name}' is not a valid name for a schedule!")
-    _save(name, {}, {}, {}, work_timer.WorkTimer(), [history.Period()])
+    _save(name, {}, {}, {}, timer.Timer(), [history.Period()])
 
 
-def reset(carry_hours: list[str] = None, carry_goals: list[str] = None) -> None:
+def reset(carry_hours: list[str] = None) -> None:
     """Starts a new period.
-
-    Resets worked hours, remaining and removes all done goals, stops running
-    work timers and adds periodic goals.
 
     Parameters
     ----------
     carry_hours
-        List of topics, keep remaining hours for each topic.
-    carry_goals
-        List of topics, keep undone goals for each topic.
+        List of topics for which unworked time is carried to new period.
     """
     if carry_hours is None:
         carry_hours = []
-    if carry_goals is None:
-        carry_goals = []
 
     try:
-        stop_working()
-    except:
-        pass
+        stop_worktimer()
+    except: pass
 
-    for topic in curr_schedule:
+    for topic in _to_work:
         if topic in carry_hours:
-            curr_remaining[topic] += curr_schedule[topic] - history.get_hours(topic)
+            _remaining = _to_work[topic] + _remaining[topic] - _history[-1].get_hours(topic)
+            _remaining[topic] = _remaining
         else:
-            curr_remaining[topic] = 0.0
-
-        if topic in carry_goals:
-            for goal_ in goal.get_periodics(curr_goals[topic]):
-                goal_.done = False
-            curr_goals[topic] = goal.get_not_dones(curr_goals[topic])
-        else:
-            curr_goals[topic] = goal.get_periodics(curr_goals[topic])
-    history.history.append(history.Period())
+            _remaining[topic] = 0.0
+    _history.append(history.Period())
 
 
 def work(topic: str, hours: float) -> None:
-    if topic not in curr_schedule:
+    if topic not in _to_work:
         raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
-    history.add_entry(history.Entry(topic, round(hours, 2)))
+    _history[-1].add_entry(history.Entry(topic, hours))
 
 
-def start_working(topic: str) -> None:
-    if topic not in curr_schedule:
+def start_worktimer(topic: str) -> None:
+    if topic not in _to_work:
         raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
-    curr_timer.start(topic)
+    _work_timer.start(topic)
 
 
-def stop_working() -> float:
+def stop_worktimer() -> float:
     """Stops working timer and adds worked hours."""
-    topic = curr_timer.topic
-    hours = curr_timer.stop()
+    topic, hours = _work_timer.stop()
     work(topic, hours)
-    return hours
+    return topic, hours
 
 
 def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
@@ -134,108 +118,126 @@ def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
     Parameters
     ----------
     topic
+        Topic goal is added to.
     name
         Used to adress goal, e.g. mark as done.
     description
-        A description of the goal
+        A description of the goal.
     periodic
-        Goal is added again on reset.
+        Goal is added after each reset.
     """
-    if topic not in curr_schedule:
+    if topic not in _to_work:
         raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
-    if name in curr_goals[topic]:
+    if name in _goals[topic]:
         raise DuplicateNameException(f"Goal names must be unique!")
     if not _valid_goal_name(name):
         raise InvalidNameException(f"'{name}' is not a valid goal name!")
 
     new_goal = goal.Goal(name, description, periodic)
-    curr_goals[topic].append(new_goal)
+    _goals[topic].append(new_goal)
 
 
 def remove_goal(topic: str, name: str) -> None:
-    if name not in curr_goals[topic]:
+    if topic not in _to_work:
+        raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
+    if name not in _goals[topic]:
         raise InvalidNameException(f"Could not find goal '{name}'!")
-    curr_goals[topic].remove(name)
+    _goals[topic].remove(name)
 
 
-def mark_done(topic: str, goal_name: str) -> None:
+def mark_done(topic: str, name: str) -> None:
     """Mark a goal as done."""
-    if goal_name not in curr_goals[topic]:
-        raise InvalidNameException(f"Could not find goal '{goal_name}'!")
+    if topic not in _to_work:
+        raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
+    if name not in _goals[topic]:
+        raise InvalidNameException(f"Could not find goal '{name}'!")
 
-    idx = curr_goals[topic].index(goal_name)
-    curr_goals[topic][idx].done = True
+    idx = _goals[topic].index(name)
+    _goals[topic][idx].done = True
 
 
-def load(name: str) -> None:
-    """Loads schedule and history."""
-    root_dir = helpers.get_top_directory() / "schedules"
+def load(name: str, root_dir: str = None) -> None:
+    """Load a schedule.
+    
+    Parameters
+    ----------
+    name
+        Name of schedule to load.
+    schedules_dir
+        Directory containing files to load from. Should contain name.schedule, name.history files."""
+    if root_dir is None:
+        root_dir = os.path.join(helpers.get_top_directory(), "schedules")
+
     try:
         with open(root_dir / f"{name}.schedule", "rb") as file:
-            schedule_, remaining_, goals_, timer = pickle.load(file)
+            schedule_, remaining_, goals_, work_timer_ = pickle.load(file)
         with open(root_dir / f"{name}.history", "rb") as file:
-            history_ = pickle.load(file)
+            worked_ = pickle.load(file)
     except FileNotFoundError:
         raise InvalidNameException(f"There is no schedule named '{name}'!")
 
-    history.history = history_
-    global curr_schedule, curr_remaining, curr_goals, curr_timer
-    curr_schedule = schedule_
-    curr_remaining = remaining_
-    curr_goals = goals_
-    curr_timer = timer
+    global _to_work, _history, _remaining, _goals, _work_timer
+    _to_work = schedule_
+    _history = worked_
+    _remaining = remaining_
+    _goals = goals_
+    _work_timer = work_timer_
 
 
 def save(name: str) -> None:
-    _save(name, curr_schedule, curr_remaining, curr_goals, curr_timer, history.history)
+    _save(name, _to_work, _remaining, _goals, _work_timer, _history)
 
 
-def _save(name: str, schedule: dict, remaining: dict, goals: dict, timer: work_timer.WorkTimer, history: list):
-    root_dir = helpers.get_top_directory() / "schedules"
+def _save(name: str, schedule: dict, remaining: dict, goals: dict, work_timer: timer.Timer, worked: list) -> None:
+    root_dir = os.path.join(helpers.get_top_directory(), "schedules")
     with open(root_dir / f"{name}.schedule", "w+b") as file:
-        pickle.dump([schedule, remaining, goals, timer], file)
+        pickle.dump([schedule, remaining, goals, work_timer], file)
     with open(root_dir / f"{name}.history", "w+b") as file:
-        pickle.dump(history, file)
+        pickle.dump(worked, file)
 
 
-def get_active_schedule() -> str:
+def get_active_schedule(path: str = None) -> str:
     """Returns name of active schedule."""
-    with open(helpers.get_top_directory() / "curr_schedule", "rt") as file:
+    if path is None:
+        path = os.path.join(helpers.get_top_directory(), "curr_schedule")
+
+    with open(path, "rt") as file:
         lines = file.readlines()
     if len(lines) == 0:
         raise NoScheduleException("There is no active schedule!")
     return lines[0]
 
 
-def set_as_active(name: str) -> None:
-    with open(helpers.get_top_directory() / "curr_schedule", "wt") as file:
+def set_as_active(name: str, path: str = None) -> None:
+    if path is None:
+        path = os.path.join(helpers.get_top_directory(), "curr_schedule")
+
+    with open(path, "wt") as file:
         file.write(name)
 
 
 def overview() -> str:
     rows = [["Topic"], ["Worked"], ["toWork"], ["Notes"]]
     rows[0].append("Period")
-    rows[1].append(f"{history.get_hours():.2g}")
-    hours_towork = sum(curr_schedule.values())
-    hours_remaining = sum(curr_remaining.values())    
-    rows[2].append(f"{hours_towork:.2g}({hours_remaining:+.2g})")
+    rows[1].append(f"{_history[-1].get_hours():.2g}")
+    rows[2].append(f"{sum(_to_work.values()):.2g}({sum(_remaining.values()):+.2g})")
     rows[3].append("")
 
-    for topic in curr_schedule:
+    for topic in _to_work:
         rows[0].append(topic)
-        rows[1].append(f"{history.get_hours(topic):.2g}")
-        rows[2].append(f"{curr_schedule[topic]:.2g}({curr_remaining[topic]:+.2g})")
+        rows[1].append(f"{_history[-1].get_hours(topic):.2g}")
+        rows[2].append(f"{_to_work[topic]:.2g}({_remaining[topic]:+.2g})")
 
-        goal_text = ""
-        for goal_ in goal.sort(curr_goals[topic]):
+        goal_cell_text = ""
+        for goal_ in goal.sort(_goals[topic]):
             if goal_.done:
-                goal_text += f"{GREEN}{goal_}{ENDC}\n"
+                goal_cell_text += f"{GREEN}{goal_}{ENDC}\n"
             elif goal_.periodic:
-                goal_text += f"{YELLOW}{goal_}{ENDC}\n"
+                goal_cell_text += f"{YELLOW}{goal_}{ENDC}\n"
             else:
-                goal_text += f"{goal_}\n"
-        goal_text = goal_text.rstrip("\n")
-        rows[3].append(goal_text)
+                goal_cell_text += f"{goal_}\n"
+        goal_cell_text = goal_cell_text.rstrip("\n")
+        rows[3].append(goal_cell_text)
 
     table = prettytable.PrettyTable()
     table.align = "c"
@@ -273,15 +275,15 @@ def topic_overview(topic: str, line_length: int) -> str:
     Goal#1 - This was my first goal.
     Goal#2 - This is my second goal. I would rather never...
     """
-    if topic not in curr_schedule:
+    if topic not in _to_work:
         raise InvalidNameException(f"Could not find topic '{topic}'!")
 
-    header = f"{topic}: {history.get_hours(topic):.2g}/{curr_schedule[topic]:.2g}" \
-             f"({curr_remaining[topic]:+.2g})"
+    header = f"{topic}: {_history[-1].get_hours(topic):.2g}/{_to_work[topic]:.2g}" \
+             f"({_remaining[topic]:+.2g})"
     header += "\n" + len(header) * "-" + "\n"
 
     goal_overview = ""
-    for goal_ in goal.sort(curr_goals[topic]):
+    for goal_ in goal.sort(_goals[topic]):
             goal_text = f"{goal_.name}\n"
             goal_text += textwrap.indent(
                 helpers.split_lines(goal_.description, line_length - 4),

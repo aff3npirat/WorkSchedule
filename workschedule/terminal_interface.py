@@ -1,6 +1,7 @@
 import argparse
 import ctypes
 import sys
+from datetime import datetime
 
 import schedule
 from schedule import InvalidNameException, DuplicateNameException, NoScheduleException
@@ -9,11 +10,12 @@ from work_timer import TimerRunningException
 LINE_LENGTH = 60
 
 
-def handle_exceptions(err: Exception) -> None:
+def exeption_handler(err: Exception) -> None:
     if type(err) in [InvalidNameException, DuplicateNameException, TimerRunningException, NoScheduleException]:
         print(str(err))
     else:
         raise err
+
 
 def add_topic_handler(args) -> None:
     schedule.add_topic(args.topic, args.hours)
@@ -25,15 +27,11 @@ def remove_topic_handler(args) -> None:
 
 def work_parser_handler(args) -> None:
     if args.topic is args.hours is None:
-        topic = schedule.curr_timer.topic
-        hours = schedule.curr_timer.stop()
-        now = schedule.curr_timer.toc.strftime("%H:%M")
-        schedule.work(topic, hours)
-        print(f"[{now}] Stoped work-timer. Worked {hours:.1f} hours on {topic}.")
+        topic, hours = schedule.stop_worktimer()
+        print(f"[{datetime.now().strftime('%H:%M')}] Stoped work-timer. Worked {hours:.2f} hours on {topic}.")
     elif args.hours is None:
-        schedule.start_working(args.topic)
-        now = schedule.curr_timer.tic.strftime("%H:%M")
-        print(f"[{now}] Started work-timer.")
+        schedule.start_worktimer(args.topic)
+        print(f"[{datetime.now().strftime('%H:%M')}] Started work-timer.")
     else:
         schedule.work(args.topic, args.hours)
 
@@ -47,7 +45,7 @@ def goal_add_handler(args) -> None:
     schedule.add_goal(args.topic, args.name, description, args.periodic)
 
 
-def done_goal_handler(args):
+def done_goal_handler(args) -> None:
     schedule.mark_done(args.topic, args.name)
 
 
@@ -55,23 +53,20 @@ def remove_goal_handler(args) -> None:
     schedule.remove_goal(args.topic, args.name)
 
 
-def reset_parser_handler(args):
-    if args.reset_goals:
-        schedule.reset(args.topics)
-    else:
-        schedule.reset(args.topics, schedule.goals.keys())
+def reset_parser_handler(args) -> None:
+    schedule.reset(args.topics)
 
 
-def new_schedule(name: str):
+def new_schedule(name: str) -> None:
     schedule.from_file(name)
 
 
-def set_active(name: str):
+def set_active(name: str) -> None:
     schedule.set_as_active(name)
     print(f"Set {name} as active.")
 
 
-def main_parser_handler(args):
+def main_parser_handler(args) -> None:
     nargs = len(args.cmd_args)
     if nargs == 0:
         print(f"Active schedule is '{schedule.get_active_schedule()}'")
@@ -113,7 +108,6 @@ remove_topic_parser.set_defaults(func=remove_topic_handler)
 
 reset_parser = subparsers.add_parser("reset")
 reset_parser.add_argument("topics", type=str, nargs="*")
-reset_parser.add_argument("-g", "--reset_goals", default=False, action="store_true")
 reset_parser.set_defaults(func=reset_parser_handler)
 
 load_parser = subparsers.add_parser("set")
@@ -142,7 +136,7 @@ goal_done_parser.add_argument("name", type=str)
 goal_done_parser.set_defaults(func=done_goal_handler)
 
 
-def main():
+def main() -> None:
     try:
         nargs = len(sys.argv)
         if nargs == 3 and sys.argv[1] == "set":
@@ -157,7 +151,7 @@ def main():
             args.func(args)
             schedule.save(name)
     except Exception as err:
-        handle_exceptions(err)
+        exeption_handler(err)
 
 
 if __name__ == '__main__':
