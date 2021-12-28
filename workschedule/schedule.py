@@ -3,10 +3,11 @@ import prettytable
 import textwrap
 import os
 
-import goal
+import goals
 import helpers
 import history
 import timer
+from history import GoalDoneEntry, GoalFailEntry, WorkEntry
 
 GREEN = '\033[32m'
 YELLOW = '\033[33m'
@@ -96,7 +97,7 @@ def reset(carry_hours: list[str] = None) -> None:
 def work(topic: str, hours: float) -> None:
     if topic not in _to_work:
         raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
-    _history[-1].add_entry(history.Entry(topic, hours))
+    _history[-1].add_entry(WorkEntry(topic, hours))
 
 
 def start_worktimer(topic: str) -> None:
@@ -133,7 +134,7 @@ def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
     if not _valid_goal_name(name):
         raise InvalidNameException(f"'{name}' is not a valid goal name!")
 
-    new_goal = goal.Goal(name, description, periodic)
+    new_goal = goals.Goal(name, description, periodic)
     _goals[topic].append(new_goal)
 
 
@@ -153,7 +154,8 @@ def mark_done(topic: str, name: str) -> None:
         raise InvalidNameException(f"Could not find goal '{name}'!")
 
     idx = _goals[topic].index(name)
-    _goals[topic][idx].done = True
+    goal = _goals[topic].pop(idx)
+    _history[-1].add_entry(GoalDoneEntry(topic, name, goal.description, goal.periodic))
 
 
 def load(name: str, root_dir: str = None) -> None:
@@ -229,7 +231,7 @@ def overview() -> str:
         rows[2].append(f"{_to_work[topic]:.2g}({_remaining[topic]:+.2g})")
 
         goal_cell_text = ""
-        for goal_ in goal.sort(_goals[topic]):
+        for goal_ in goals.sort(_goals[topic]):
             if goal_.done:
                 goal_cell_text += f"{GREEN}{goal_}{ENDC}\n"
             elif goal_.periodic:
@@ -283,7 +285,7 @@ def topic_overview(topic: str, line_length: int) -> str:
     header += "\n" + len(header) * "-" + "\n"
 
     goal_overview = ""
-    for goal_ in goal.sort(_goals[topic]):
+    for goal_ in goals.sort(_goals[topic]):
             goal_text = f"{goal_.name}\n"
             goal_text += textwrap.indent(
                 helpers.split_lines(goal_.description, line_length - 4),
