@@ -70,7 +70,7 @@ def main_parser_handler(args) -> None:
     nargs = len(args.cmd_args)
     if nargs == 0:
         print(f"Active schedule is '{schedule.get_active_schedule()}'")
-    elif nargs == 1 and args.cmd_args[0] in ["overview", "Period", "view"]:
+    elif nargs == 1 and args.cmd_args[0] in ["overview", "view"]:
         # enable virtual terminal sequences
         # Reference: https://docs.microsoft.com/en-us/windows/console/getstdhandle
         kernel32 = ctypes.windll.kernel32
