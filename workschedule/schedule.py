@@ -13,12 +13,13 @@ GREEN = '\033[32m'
 YELLOW = '\033[33m'
 ENDC = '\033[0m'
 
+
+
 _to_work: dict
 _remaining: dict
 _goals: dict
 _history: list[history.Period]
 _work_timer: timer.Timer
-
 
 class InvalidNameException(Exception): pass
 class DuplicateNameException(Exception): pass
@@ -158,7 +159,7 @@ def mark_done(topic: str, name: str) -> None:
     goal = _goals[topic].pop(idx)
     _history[-1].add_entry(GoalDoneEntry(topic, name, goal.description, goal.periodic))
 
-# TODO refactor saving/loading: only one file per schedule
+
 def load(name: str, root_dir: str = None) -> None:
     """Load a schedule.
     
@@ -167,33 +168,30 @@ def load(name: str, root_dir: str = None) -> None:
     name
         Name of schedule to load.
     schedules_dir
-        Directory containing files to load from. Should contain name.schedule, name.history files."""
+        Directory containing name.schedule file."""
     if root_dir is None:
         root_dir = os.path.join(helpers.get_top_directory(), "schedules")
 
     try:
         with open(root_dir / f"{name}.schedule", "rb") as file:
-            loaded_schedule = pickle.load(file)
-        with open(root_dir / f"{name}.history", "rb") as file:
-            loaded_history = pickle.load(file)
+            loaded = pickle.load(file)
     except FileNotFoundError:
         raise InvalidNameException(f"There is no schedule named '{name}'!")
 
     global _to_work, _history, _remaining, _goals, _work_timer
-    _to_work, _remaining, _goals, _work_timer = loaded_schedule
-    _history = loaded_history
+    _to_work, _remaining, _goals, _work_timer, _history = loaded
 
 
-def save(name: str) -> None:
-    _save(name, _to_work, _remaining, _goals, _work_timer, _history)
+def save(name: str, root_dir: str = None) -> None:
+    _save(name, _to_work, _remaining, _goals, _work_timer, _history, root_dir=root_dir)
 
 
-def _save(name: str, schedule: dict, remaining: dict, goals: dict, work_timer: timer.Timer, worked: list) -> None:
-    root_dir = os.path.join(helpers.get_top_directory(), "schedules")
+def _save(name: str, schedule: dict, remaining: dict, goals: dict, work_timer: timer.Timer, history: list, root_dir: str = None) -> None:
+    if root_dir is None:
+        root_dir = os.path.join(helpers.get_top_directory(), "schedules")
+
     with open(root_dir / f"{name}.schedule", "w+b") as file:
-        pickle.dump([schedule, remaining, goals, work_timer], file)
-    with open(root_dir / f"{name}.history", "w+b") as file:
-        pickle.dump(worked, file)
+        pickle.dump([schedule, remaining, goals, work_timer, history], file)
 
 
 def get_active_schedule(path: str = None) -> str:
