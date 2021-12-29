@@ -136,6 +136,7 @@ def add_goal(topic: str, name: str, description: str, periodic: bool) -> None:
 
     new_goal = goals.Goal(name, description, periodic)
     _goals[topic].append(new_goal)
+    _goals[topic] = sorted(goals[topic])  # sort goals alphabetically
 
 
 def remove_goal(topic: str, name: str) -> None:
@@ -157,7 +158,7 @@ def mark_done(topic: str, name: str) -> None:
     goal = _goals[topic].pop(idx)
     _history[-1].add_entry(GoalDoneEntry(topic, name, goal.description, goal.periodic))
 
-
+# TODO refactor saving/loading: only one file per schedule
 def load(name: str, root_dir: str = None) -> None:
     """Load a schedule.
     
@@ -172,18 +173,15 @@ def load(name: str, root_dir: str = None) -> None:
 
     try:
         with open(root_dir / f"{name}.schedule", "rb") as file:
-            schedule_, remaining_, goals_, work_timer_ = pickle.load(file)
+            loaded_schedule = pickle.load(file)
         with open(root_dir / f"{name}.history", "rb") as file:
-            worked_ = pickle.load(file)
+            loaded_history = pickle.load(file)
     except FileNotFoundError:
         raise InvalidNameException(f"There is no schedule named '{name}'!")
 
     global _to_work, _history, _remaining, _goals, _work_timer
-    _to_work = schedule_
-    _history = worked_
-    _remaining = remaining_
-    _goals = goals_
-    _work_timer = work_timer_
+    _to_work, _remaining, _goals, _work_timer = loaded_schedule
+    _history = loaded_history
 
 
 def save(name: str) -> None:
@@ -219,7 +217,7 @@ def set_as_active(name: str, path: str = None) -> None:
 
 
 def overview() -> str:
-    rows = [["Topic"], ["Worked"], ["toWork"], ["Notes"]]
+    rows = [["Topic"], ["Worked"], ["toWork"], ["Goals"]]
     rows[0].append("Period")
     rows[1].append(f"{_history[-1].get_hours():.2g}")
     rows[2].append(f"{sum(_to_work.values()):.2g}({sum(_remaining.values()):+.2g})")
@@ -231,15 +229,12 @@ def overview() -> str:
         rows[2].append(f"{_to_work[topic]:.2g}({_remaining[topic]:+.2g})")
 
         goal_cell_text = ""
-        for goal_ in goals.sort(_goals[topic]):
-            if goal_.done:
-                goal_cell_text += f"{GREEN}{goal_}{ENDC}\n"
-            elif goal_.periodic:
+        for goal_ in _goals[topic]:
+            if goal_.periodic:
                 goal_cell_text += f"{YELLOW}{goal_}{ENDC}\n"
             else:
                 goal_cell_text += f"{goal_}\n"
-        goal_cell_text = goal_cell_text.rstrip("\n")
-        rows[3].append(goal_cell_text)
+        rows[3].append(goal_cell_text.rstrip("\n"))
 
     table = prettytable.PrettyTable()
     table.align = "c"
@@ -256,26 +251,18 @@ def topic_overview(topic: str, line_length: int) -> str:
     ----------
     topic
         Name of topic.
-    detailed
-        Expand goal descriptions.
     line_length
         Number of chars in single line.
 
     Examples
     --------
-    >>> topic_overview("CogScie", True, 60)
+    >>> topic_overview("CogScie", 60)
     CogScie: 10/20(+3)
     ------------------
     Goal#1
         This was my first goal.
    Goal#2
         This is my second goal. I would rather never fulfill it.
-
-    >>> topic_overview("CogScie", False, 60)
-    CogScie: 10/20(+3)
-    ------------------
-    Goal#1 - This was my first goal.
-    Goal#2 - This is my second goal. I would rather never...
     """
     if topic not in _to_work:
         raise InvalidNameException(f"Could not find topic '{topic}'!")
@@ -285,14 +272,12 @@ def topic_overview(topic: str, line_length: int) -> str:
     header += "\n" + len(header) * "-" + "\n"
 
     goal_overview = ""
-    for goal_ in goals.sort(_goals[topic]):
+    for goal_ in _goals[topic]:
             goal_text = f"{goal_.name}\n"
             goal_text += textwrap.indent(
                 helpers.split_lines(goal_.description, line_length - 4),
                 " " * 4)
-            if goal_.done:
-                goal_overview += f"{GREEN}{goal_text}{ENDC}\n"
-            elif goal_.periodic:
+            if goal_.periodic:
                 goal_overview += f"{YELLOW}{goal_text}{ENDC}\n"
             else:
                 goal_overview += f"{goal_text}\n"

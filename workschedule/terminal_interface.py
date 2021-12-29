@@ -5,7 +5,7 @@ from datetime import datetime
 
 import schedule
 from schedule import InvalidNameException, DuplicateNameException, NoScheduleException
-from work_timer import TimerRunningException
+from timer import TimerRunningException
 
 LINE_LENGTH = 60
 
