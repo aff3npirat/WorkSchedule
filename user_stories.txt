@@ -1,19 +1,9 @@
 #01: Overview cmd
     Carry_on should always be displayed when its unequal 0. Hours should be displayed HH:MM.
 
-#02: Period goals
-    There should be an option to add goals to no specific topic. These goals are listed
-    under period in overview. There should also be an option to get detailed overview of period.
-
-#03: Goal names [done]
-    The goal names must only be unique in topic. So there can exist to goals (in different topics) with same name.
-
 #04: Schedules
     There should be a functionality to create schedules. These schedules consist of one or multiple periods (where period length [number of days] is variable).
     On each day one can add a topc for a specific time.
-
-#05: remove done goals
-    When a goal is done, remove goal from overview and free name.
 
 #06: timed goals
     There should be an option to add a deadline (I think day is sufficient) to a goal.
@@ -25,12 +15,6 @@
 
 #08: Automatic reset
     Each schedule has customizable period length (e.g. number of days). Periods are reset automatically.
-
-#09: better history
-    History should contain:
-      - Date + time when worked on a topic for x hours (currently only Date is stored, so working on a topic twice on single day is listed as on entry)
-      - Date + time when a goal was marked as done/failed
-      - resets
 
 #10: work timer
     Hours should be displayed HH:MM.
