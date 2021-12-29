@@ -26,7 +26,7 @@ _work_timer: timer.Timer
 
 
 def _valid_topic_name(name: str) -> bool:
-    if name in ["", "add", "work", "overview", "goal", "set", "list", "new", "view", "reset"]:
+    if name in ["", "Period", "add", "work", "overview", "goal", "set", "list", "new", "view", "reset"]:
         return False
     return True
 
@@ -45,7 +45,7 @@ def _valid_schedule_name(name: str) -> bool:
 
 def add_topic(new_topic: str, hours: float) -> None:
     """Adds a new topic to current schedule"""
-    if not _valid_topic_name(new_topic) or new_topic == "Period":
+    if not _valid_topic_name(new_topic):
         raise InvalidNameException(f"'{new_topic}' is not a valid topic name!")
 
     if new_topic not in _to_work:

@@ -66,31 +66,20 @@ def set_active(name: str) -> None:
     print(f"Set {name} as active.")
 
 
-def main_parser_handler(args) -> None:
-    nargs = len(args.cmd_args)
-    if nargs == 0:
-        print(f"Active schedule is '{schedule.get_active_schedule()}'")
-    elif nargs == 1 and args.cmd_args[0] in ["overview", "view"]:
-        # enable virtual terminal sequences
-        # Reference: https://docs.microsoft.com/en-us/windows/console/getstdhandle
-        kernel32 = ctypes.windll.kernel32
-        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+def view_parser_handler(args) -> None:
+    if args.topic is None:
         print(schedule.overview())
-    elif nargs == 1 and schedule._valid_topic_name(args.cmd_args[0]):
-        kernel32 = ctypes.windll.kernel32
-        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-        print(schedule.topic_overview(args.cmd_args[0], LINE_LENGTH))
     else:
-        args = main_parser.parse_args(args.cmd_args)
-        args.func(args)
+        print(schedule.topic_overview(args.topic, LINE_LENGTH))
 
-
-overview_parser = argparse.ArgumentParser(description="main parser")
-overview_parser.add_argument("cmd_args", nargs="*", default=[])
-overview_parser.set_defaults(func=main_parser_handler)
 
 main_parser = argparse.ArgumentParser(description="subparsers")
+main_parser.set_defaults(func=lambda x: print(f"Active schedule is '{schedule.get_active_schedule()}'"))
 subparsers = main_parser.add_subparsers(dest="parser_name")
+
+overview_parser = subparsers.add_parser("view")
+overview_parser.add_argument("topic", default=None, type=str, nargs="?")
+overview_parser.set_defaults(func=view_parser_handler)
 
 work_parser = subparsers.add_parser("work")
 work_parser.add_argument("topic", type=str, default=None, nargs="?")
@@ -145,7 +134,7 @@ def main() -> None:
             schedule.new_schedule(sys.argv[2])
             set_active(sys.argv[2])
         else:
-            args = overview_parser.parse_args()
+            args = main_parser.parse_args()
             name = schedule.get_active_schedule()
             schedule.load(name)
             args.func(args)
