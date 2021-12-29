@@ -166,7 +166,7 @@ def mark_done(topic: str, name: str) -> None:
     if topic not in _goals:
         raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
     if name not in _goals[topic]:
-        raise InvalidNameException(f"Could not find goal '{name}'!")
+        raise InvalidNameException(f"Could not find goal '{name}' in topic '{topic}'!")
 
     idx = _goals[topic].index(name)
     goal = _goals[topic].pop(idx)

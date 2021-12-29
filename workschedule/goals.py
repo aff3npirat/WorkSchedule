@@ -5,9 +5,12 @@ from dataclasses import dataclass, field
 @dataclass(order=True)
 class Goal:
     """A goal can be a task or note."""
-    name: str = field(compare=True)
-    description: str
-    periodic: bool
+    name: str = field(repr=True, compare=True)
+    description: str = field(repr=False, compare=False)
+    periodic: bool = field(repr=False, compare=False)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return self.name
+
+    def __eq__(self, other) -> bool:
+        return self.name == other
