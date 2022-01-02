@@ -134,7 +134,7 @@ def main() -> None:
             schedule.new_schedule(sys.argv[2])
             set_active(sys.argv[2])
         else:
-            args = main_parser.parse_args("goal done T1 g1".split())
+            args = main_parser.parse_args()
             name = schedule.get_active_schedule()
             schedule.load(name)
             args.func(args)
