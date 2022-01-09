@@ -31,3 +31,6 @@
 
 #13:
     When timer is running on different days (e.g. start on 1.1-23:00 and end on 2.1-02:00), times are computed wrong.
+
+#14:
+    Each topic can be assigned a priority. High priority means these topics are more important.
