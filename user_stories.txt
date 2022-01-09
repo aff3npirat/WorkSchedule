@@ -34,3 +34,8 @@
 
 #14:
     Each topic can be assigned a priority. High priority means these topics are more important.
+
+#15:
+    One should be able to create a TODO-list, which can be reset or marked as done.
+    The TODO-List contains goals from topics in specific order.
+    On reset all goals are removed from TODO-list. When marked done, all goals on list are marked as done.
