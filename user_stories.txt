@@ -1,5 +1,5 @@
 #01: Overview cmd
-    Carry_on should always be displayed when its unequal 0. Hours should be displayed HH:MM.
+    Carry_on should always be displayed when its unequal 0.
 
 #04: Schedules
     There should be a functionality to create schedules. These schedules consist of one or multiple periods (where period length [number of days] is variable).
@@ -16,8 +16,8 @@
 #08: Automatic reset
     Each schedule has customizable period length (e.g. number of days). Periods are reset automatically.
 
-#10: work timer
-    Hours should be displayed HH:MM.
+#10:
+    Hours should alwys be displayed HH:MM.
 
 #11: plotting
     There should be an option to display plots for all periods or single.
@@ -28,3 +28,6 @@
 
 #12: undone goal
     There should be a command to mark a goal as failed.
+
+#13:
+    When timer is running on different days (e.g. start on 1.1-23:00 and end on 2.1-02:00), times are computed wrong.
