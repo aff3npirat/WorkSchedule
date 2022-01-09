@@ -23,6 +23,7 @@ _remaining: dict
 _goals: dict
 _history: list[history.Period]
 _work_timer: timer.Timer
+_todo: list
 
 
 def _valid_topic_name(name: str) -> bool:
@@ -43,6 +44,57 @@ def _valid_schedule_name(name: str) -> bool:
     return True
 
 
+def add_todo(topic:str, goal:str, pos:int=-1) -> None:
+    """Adds a goal to todo-list.
+    
+    Parameters
+    ----------
+    topic
+        Name of topic which contains goal.
+    goal
+        Name of goal.
+    pos
+        Index (0-indexed) on todo-list. When pos equals -1 goal is added to end of list.
+    """
+    if topic not in _goals:
+        raise InvalidNameException(f"Could not find topic '{topic}' in schedule!")
+    if goal not in _goals[topic]:
+        raise InvalidNameException(f"Could not find goal '{goal}'!")
+
+    if pos >= 0:
+        _todo.insert(pos, (topic, goal))
+    else:
+        _todo.append((topic, goal))
+
+
+def remove_todo(pos:int) -> None:
+    """Remove a goal form todo-list.
+    
+    Parameters
+    ----------
+    pos
+        Index of goal to remove.
+    """
+    if pos >= len(_todo) or pos < 0:
+        raise IndexError(f"Position '{pos+1}' does not exist in todo-list!")
+
+    _todo.pop(pos)
+
+
+def reset_todo(done:bool=False) -> None:
+    """Clear todo-list.
+    
+    Parameters
+    ----------
+    done
+        If True, all goals on tood-list will be marked as done.
+    """
+    if done:
+        for topic, goal in _todo:
+            mark_done(topic, goal)
+    _todo.clear()
+
+
 def add_topic(new_topic: str, hours: float) -> None:
     """Adds a new topic to current schedule"""
     if not _valid_topic_name(new_topic):
@@ -58,13 +110,15 @@ def remove_topic(topic: str) -> None:
     """Remove a topic from current schedule."""
     if topic == "Period":
         raise InvalidNameException(f"Can not remove 'Period' from schedule!")
-
-    if topic in _to_work:
-        del _to_work[topic]
-        del _remaining[topic]
-        del _goals[topic]
-    else:
+    if topic not in _to_work:
         raise InvalidNameException(f"Could not find '{topic}' in schedule!")
+
+    del _to_work[topic]
+    del _remaining[topic]
+    del _goals[topic]
+    for topic_, goal in _todo:
+        if topic_ == topic:
+            _todo.remove((topic_, goal))
 
 
 def new_schedule(name: str) -> None:
@@ -155,6 +209,10 @@ def remove_goal(topic: str, name: str) -> None:
     if name not in _goals[topic]:
         raise InvalidNameException(f"Could not find goal '{name}'!")
     _goals[topic].remove(name)
+    
+    for entry in _todo:
+        if (topic, name) == entry:
+            _todo.remove(entry)
 
 
 def mark_done(topic: str, name: str) -> None:
@@ -173,7 +231,7 @@ def mark_done(topic: str, name: str) -> None:
     _history[-1].add_entry(GoalDoneEntry(topic, name, goal.description, goal.periodic))
 
 
-def load(name: str, root_dir: str = None) -> None:
+def load(name:str, root_dir:str = None) -> None:
     """Load a schedule.
     
     Parameters
@@ -191,20 +249,20 @@ def load(name: str, root_dir: str = None) -> None:
     except FileNotFoundError:
         raise InvalidNameException(f"There is no schedule named '{name}'!")
 
-    global _to_work, _history, _remaining, _goals, _work_timer
-    _to_work, _remaining, _goals, _work_timer, _history = loaded
+    global _to_work, _history, _remaining, _goals, _work_timer, _todo
+    _to_work, _remaining, _goals, _work_timer, _history, _todo = loaded
 
 
-def save(name: str, root_dir: str = None) -> None:
-    _save(name, _to_work, _remaining, _goals, _work_timer, _history, root_dir=root_dir)
+def save(name:str, root_dir:str=None) -> None:
+    _save(name, _to_work, _remaining, _goals, _work_timer, _history, _todo, root_dir=root_dir)
 
 
-def _save(name: str, schedule_: dict, remaining: dict, goals_: dict, work_timer: timer.Timer, history_: list, root_dir: str = None) -> None:
+def _save(name:str, schedule_:dict, remaining:dict, goals_:dict, work_timer:timer.Timer, history_:list, _todo:list, root_dir:str=None) -> None:
     if root_dir is None:
         root_dir = os.path.join(helpers.get_top_directory(), "schedules")
 
     with open(os.path.join(root_dir, f"{name}.schedule"), "w+b") as file:
-        pickle.dump([schedule_, remaining, goals_, work_timer, history_], file)
+        pickle.dump([schedule_, remaining, goals_, work_timer, history_, _todo], file)
 
 
 def get_active_schedule(path: str = None) -> str:
