@@ -67,6 +67,10 @@ def set_active(name: str) -> None:
 
 
 def view_parser_handler(args) -> None:
+    # enable virtual terminal sequences
+    # Reference: https://docs.microsoft.com/en-us/windows/console/getstdhandle
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
     if args.topic is None:
         print(schedule.overview())
     else:
