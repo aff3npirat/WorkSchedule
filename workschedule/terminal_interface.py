@@ -77,9 +77,33 @@ def view_parser_handler(args) -> None:
         print(schedule.topic_overview(args.topic, LINE_LENGTH))
 
 
+def view_todo_handler(args) -> None:
+    print(schedule.todo_as_str())
+
+
+def add_todo_handler(args) -> None:
+    if args.pos is None:
+        pos = -1
+    else:
+        pos = args.pos -1
+
+    schedule.add_todo(args.topic, args.goal, pos)
+
+
+def remove_todo_handler(args) -> None:
+    if args.pos is None:
+        schedule.reset_todo(False)
+    else:
+        schedule.remove_todo(args.pos - 1)
+
+
+def done_todo_handler(args) -> None:
+    schedule.reset_todo(True)
+
+
 main_parser = argparse.ArgumentParser(description="subparsers")
 main_parser.set_defaults(func=lambda x: print(f"Active schedule is '{schedule.get_active_schedule()}'"))
-subparsers = main_parser.add_subparsers(dest="parser_name")
+subparsers = main_parser.add_subparsers()
 
 overview_parser = subparsers.add_parser("view")
 overview_parser.add_argument("topic", default=None, type=str, nargs="?")
@@ -127,6 +151,23 @@ goal_done_parser = goal_subparsers.add_parser("done")
 goal_done_parser.add_argument("topic", type=str)
 goal_done_parser.add_argument("name", type=str)
 goal_done_parser.set_defaults(func=done_goal_handler)
+
+todo_main_parser = subparsers.add_parser("todo")
+todo_main_parser.set_defaults(func=view_todo_handler)
+todo_subparsers = todo_main_parser.add_subparsers()
+
+todo_add_parser = todo_subparsers.add_parser("add")
+todo_add_parser.add_argument("topic", type=str)
+todo_add_parser.add_argument("goal", type=str)
+todo_add_parser.add_argument("-i", "--pos", type=int, default=None)
+todo_add_parser.set_defaults(func=add_todo_handler)
+
+todo_remove_parser = todo_subparsers.add_parser("rm")
+todo_remove_parser.add_argument("-i", "--pos", type=int, default=None)
+todo_remove_parser.set_defaults(func=remove_todo_handler)
+
+todo_done_parser = todo_subparsers.add_parser("done")
+todo_done_parser.set_defaults(func=done_todo_handler)
 
 
 def main() -> None:

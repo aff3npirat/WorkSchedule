@@ -95,6 +95,10 @@ def reset_todo(done:bool=False) -> None:
     _todo.clear()
 
 
+def todo_as_str() -> str:
+    """Get current todo-list as printable string."""
+
+
 def add_topic(new_topic: str, hours: float) -> None:
     """Adds a new topic to current schedule"""
     if not _valid_topic_name(new_topic):
