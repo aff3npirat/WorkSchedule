@@ -97,6 +97,10 @@ def reset_todo(done:bool=False) -> None:
 
 def todo_as_str() -> str:
     """Get current todo-list as printable string."""
+    todo_str = "   TODO\n"
+    for idx, (topic, goal) in enumerate(_todo):
+        todo_str += f"{idx+1}. {topic}: {goal}\n"
+    return todo_str
 
 
 def add_topic(new_topic: str, hours: float) -> None:
