@@ -97,6 +97,9 @@ def reset_todo(done:bool=False) -> None:
 
 def todo_as_str() -> str:
     """Get current todo-list as printable string."""
+    if len(_todo) == 0:
+        return "Todo list is empty!"
+
     todo_str = "   TODO\n"
     for idx, (topic, goal) in enumerate(_todo):
         todo_str += f"{idx+1}. {topic}: {goal}\n"
