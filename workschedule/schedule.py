@@ -237,9 +237,12 @@ def mark_done(topic: str, name: str) -> None:
     if name not in _goals[topic]:
         raise InvalidNameException(f"Could not find goal '{name}' in topic '{topic}'!")
 
-    idx = _goals[topic].index(name)
-    goal = _goals[topic].pop(idx)
+    goal = _goals[topic].pop(_goals[topic].index(name))
     _history[-1].add_entry(GoalDoneEntry(topic, name, goal.description, goal.periodic))
+
+    for idx, entry in enumerate(_todo):
+        if (topic, goal.name) == entry:
+            del _todo[idx]
 
 
 def load(name:str, root_dir:str = None) -> None:
