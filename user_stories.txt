@@ -36,4 +36,8 @@
     Each topic can be assigned a priority. High priority means these topics are more important.
 
 #16:
-    The tood list should show the goal descriptions. Maybe add the option to not show them.
+    The todo list should show the goal descriptions. Maybe add the option to not show them.
+
+#17:
+    Track time worked per day. Time worked on current day should be displayed seperated
+    from total time.
