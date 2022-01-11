@@ -1,3 +1,0 @@
-Lernen: 5
-Arbeiten: 20
-LustigeSachen: 15.5
